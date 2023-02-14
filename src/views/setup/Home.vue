@@ -51,14 +51,14 @@
 </template>
 
 <script>
-import io from "socket.io-client";
+// import io from "socket.io-client";
 export default {
+  props: ['socket'],
     data() {
         return {
           user:{
-            id: null,
             username: null,
-            room: null,
+            room: null, 
           },
           show: false,
           bodyBgVariant: 'dark',
@@ -66,13 +66,15 @@ export default {
         }
     },
     created() {
-      this.socket = io('http://localhost:3000');
-      this.socket.emit('getCurrentUser');
+      console.log(this.$route.params.socket)
+      this.socket = this.$route.params.socket;
+      /* this.socket = io('http://localhost:3000');*/
+      this.socket.emit('getCurrentUser'); 
       this.socket.on('currentUser', (user) => {
         console.log(user)
         this.user = user;
       });
-      console.log(this.user)
+      console.log(this.user) 
     },
     methods: {
       hideModal() {
