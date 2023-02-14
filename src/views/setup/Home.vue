@@ -51,13 +51,28 @@
 </template>
 
 <script>
+import io from "socket.io-client";
 export default {
     data() {
         return {
+          user:{
+            id: null,
+            username: null,
+            room: null,
+          },
           show: false,
           bodyBgVariant: 'dark',
           bodyTextVariant: 'white',
         }
+    },
+    created() {
+      this.socket = io('http://localhost:3000');
+      this.socket.emit('getCurrentUser');
+      this.socket.on('currentUser', (user) => {
+        console.log(user)
+        this.user = user;
+      });
+      console.log(this.user)
     },
     methods: {
       hideModal() {

@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import Login from "../views/auth/Login.vue";
 import Home from "../views/setup/Home.vue";
 import Lobby from "../views/setup/Lobby.vue";
+import GamePlay from "../views/game-play/GamePlay.vue";
 
 Vue.use(VueRouter);
 
@@ -21,6 +22,11 @@ const routes = [
     path: "/lobby",
     name: "Lobby",
     component: Lobby,
+  },
+  {
+    path: "/game-play",
+    name: "game-play",
+    component: GamePlay,
   },
   // {
   // path: '/about',

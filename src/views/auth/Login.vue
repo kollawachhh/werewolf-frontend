@@ -23,29 +23,43 @@
       <p class="display-1 fw-bold">WEREWOLF</p>
       <p class="fs-1 fw-bold">Web game project</p>
     </div>
-    <div class="text-center text-white mt-5">
+    <form class="text-center text-white mt-5" v-on:submit="submit">
       <p class="fs-4 fw-bold">USERNAME</p>
-      <input class="px-2 mb-4 text-white bg-secondary border-1 border-light text-center" style="height:40px" type="text" placeholder="Username">
+      <input v-model="username" class="px-2 mb-4 text-white bg-secondary border-1 border-light text-center" style="height:40px" type="text" placeholder="Username">
       <br>
-      <!-- <button class="button rounded-3 mt-3" style="width: 80px; height: 40px;" type="submit">Submit</button> -->
-      <a class="button text-dark fw-bold bg-white rounded-3 px-3 py-2 submit" href="/home">Submit</a>
-    </div>
+      <button class="button rounded-3 mt-3" style="width: 80px; height: 40px;" type="submit">Submit</button>
+      <!-- <a class="button text-dark fw-bold bg-white rounded-3 px-3 py-2 submit" href="/home">Submit</a> -->
+    </form>
   </div>
 </template>
 
 <script>
+import io from "socket.io-client";
 export default {
     data() {
         return {
+          socket: {},
+          username: null,
           show: false,
           bodyBgVariant: 'dark',
           bodyTextVariant: 'white',
         }
     },
+    created() {
+      this.socket = io('http://localhost:3000');
+    },
+    mounted() {
+
+    },
     methods: {
       hideModal() {
         this.$refs['how-to-play'].hide()
       },
+      submit(e){
+        e.preventDefault()
+        this.socket.emit('login', { username: this.username, room: null });
+        this.$router.push('/home')
+      }
     }
 }
 </script>
