@@ -7,7 +7,7 @@
     </div>
     <div class="h-75 lobby-wrapper rounded-4 text-white px-5 pt-4">
         <div class="d-flex" style="border-bottom: 2px solid white;">
-            <p class="me-auto text-start fs-1 fw-bold">Lobby #000000</p>
+            <p class="me-auto text-start fs-1 fw-bold">Lobby #{{ roomId }}</p>
             <p class="ms-auto text-end fs-1 fw-bold">11 Players</p>
         </div>
         <div class="h-75 player-list-wrapper rounded-4 mt-4 px-3 py-4 ">
@@ -102,7 +102,7 @@
 
 <script>
 export default {
-
+    props: ['roomId']
 }
 </script>
 
