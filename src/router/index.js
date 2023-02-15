@@ -20,9 +20,10 @@ const routes = [
     props: true,
   },
   {
-    path: "/lobby",
+    path: "/lobby/:roomId",
     name: "Lobby",
     component: Lobby,
+    props: true,
   },
   {
     path: "/game-play",

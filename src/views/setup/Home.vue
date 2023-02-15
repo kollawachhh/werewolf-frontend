@@ -4,21 +4,21 @@
         <div class="h-25 pt-5">
             <p class="display-5 mt-5 fw-bold">Have a room !?</p>
         </div>
-        <div class="mb-5 pb-3">
+        <form class="mb-5 pb-3" v-on:submit="create">
             <div class="w-50 mx-auto mb-3">
                 <p class="fw-bold" style="text-align: left;">CREATE ROOM</p>
-                <input class="w-100 px-2" style="height:40px" type="number" max="50" min="4" placeholder="Max player">
+                <input v-model="maxPlayer" class="w-100 px-2" style="height:40px" type="number" max="10" min="4" placeholder="Max player">
             </div>
-            <!-- <button class="button bg-secondary border-0 py-1 rounded-2 text-white" style="width:70px;">Create</button> -->
-            <a class="bg-secondary border-0 px-3 py-2 rounded-2 text-white" style="text-decoration: none;" href="/lobby">Create</a>
-        </div>
-        <div style="padding-bottom: 70%">
+            <button class="button bg-secondary border-0 py-1 rounded-2 text-white" style="width:70px;" type="submit">Create</button>
+            <!-- <a class="bg-secondary border-0 px-3 py-2 rounded-2 text-white" style="text-decoration: none;" href="/lobby">Create</a> -->
+          </form>
+        <form style="padding-bottom: 70%" v-on:submit="join">
             <div class="w-50 mx-auto mb-3">
                 <p class="fw-bold" style="text-align: left;">JOIN ROOM</p>
-                <input class="w-100 px-2" style="height:40px" type="number" max="50" min="4" placeholder="Max player">
+                <input class="w-100 px-2" style="height:40px" type="number" placeholder="Room code">
             </div>
             <button class="button bg-secondary border-0 py-1 rounded-2 text-white" style="width:70px;">Join</button>
-        </div>
+          </form>
         <div class="ps-4" style="text-align:left;"><a class="text-dark fw-bold how-to-play fs-5" href="/">Back</a></div>
         
     </div>
@@ -60,6 +60,8 @@ export default {
             username: null,
             room: null, 
           },
+          maxPlayer: 4,
+          roomCode: null,
           show: false,
           bodyBgVariant: 'dark',
           bodyTextVariant: 'white',
@@ -68,10 +70,9 @@ export default {
     created() {
       console.log(this.$route.params.socket)
       this.socket = this.$route.params.socket;
-      /* this.socket = io('http://localhost:3000');*/
       this.socket.emit('getCurrentUser'); 
       this.socket.on('currentUser', (user) => {
-        console.log(user)
+        console.log("Current user: ",user)
         this.user = user;
       });
       console.log(this.user) 
@@ -80,6 +81,26 @@ export default {
       hideModal() {
         this.$refs['how-to-play'].hide()
       },
+      create(e){
+        e.preventDefault()
+        this.socket.emit('createRoom', this.maxPlayer)
+        this.socket.on('roomCreated', (room) => {
+          console.log("Room created: ", room)
+          this.user.room = room;
+          console.log("Room code: ", this.user.room)
+          this.$router.push({ path: 'lobby/'+this.user.room, params: { socket: this.user.room } })
+        });
+      },
+      join(e){
+        e.preventDefault()
+        this.socket.emit('joinRoom', this.roomCode)
+        this.socket.on('roomJoined', (room) => {
+          console.log("Room joined: ", room)
+          this.user.room = room;
+          console.log("Join code: ", this.user.room)
+          this.$router.push({ path: 'lobby/'+this.user.room, params: { socket: this.user.room } })
+        });
+      }
     }
 }
 </script>

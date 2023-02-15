@@ -62,7 +62,7 @@ export default {
         e.preventDefault()
         // this.socket.emit('login', { username: this.username, room: null });
         console.log('user: ', this.user)
-        this.socket.emit('new user connected', this.user)
+        this.socket.emit('login', this.user)
         this.$router.push({ name: 'Home', params: { socket: this.socket } })
       }
     }
