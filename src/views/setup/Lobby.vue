@@ -8,10 +8,10 @@
     <div class="h-75 lobby-wrapper rounded-4 text-white px-5 pt-4">
         <div class="d-flex" style="border-bottom: 2px solid white;">
             <p class="me-auto text-start fs-1 fw-bold">Lobby #{{ roomId }}</p>
-            <p class="ms-auto text-end fs-1 fw-bold">11 Players</p>
+            <p class="ms-auto text-end fs-1 fw-bold">{{ players.length }} / {{ this.room.maxPlayer }} Players</p>
         </div>
         <div class="h-75 player-list-wrapper rounded-4 mt-4 px-3 py-4 ">
-            <div class="h-100 mx-auto overflow-auto">
+            <!-- <div class="h-100 mx-auto overflow-auto">
                 <div class="d-flex py-1" style="height: 10%;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
                         <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
@@ -89,10 +89,21 @@
                     <span class="h3">User 10</span>
                     <span class="ms-auto me-4 h3">Ready</span>
                 </div>
+            </div> -->
+            <div class="h-100 mx-auto overflow-auto">
+                <div v-for="player in players" :key="player.username" class="d-flex py-1" style="height: 10%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
+                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                    </svg>
+                    <span class="h3">{{ player.username }}</span>
+                    <span class="ms-auto me-4 h3">{{ player.state }}</span>
+                </div>
             </div>
         </div>
         <div class="d-flex mt-3">
-            <button class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" disabled>Start</button>
+            <button v-if="user.state === 'Host'" v-on:click="submit" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length != (room.maxPlayer-1)">Start</button>
+            <button v-else-if="user.state === 'Waiting'" v-on:click="changeState" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Ready</button>
+            <button v-else-if="user.state === 'Ready'" v-on:click="changeState" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Wait</button>
             <!-- <button class="me-auto ms-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" >Back</button> -->
             <a class="me-auto ms-5 fw-bold rounded-2 border-0 py-2 text-dark" style="width: 10%; background: #AEAEAE; text-decoration: none;" href="/home">Back</a>
         </div>
@@ -102,7 +113,85 @@
 
 <script>
 export default {
-    props: ['roomId']
+  props: {
+    socket: {
+      require: true
+    },
+    roomId: {
+      require: true
+    }
+  },
+  data() {
+    return {
+      user:{
+        id: null,
+        username: null,
+        room: null,
+        state: null
+      },
+      players: [],
+      room: null,
+      bodyBgVariant: 'dark',
+      bodyTextVariant: 'white',
+    }
+  },
+  async created() {
+    console.log(this.$route);
+    await this.socket.emit('getCurrentUser'); 
+    await this.socket.on('currentUser', (user) => {
+      console.log("Current user: ",user)
+      this.user = user;
+      console.log(this.socket);
+    });
+
+    await this.socket.emit('getRoom', this.$props.roomId);
+    await this.socket.on('thisRoom', (room) => {
+      console.log("This room: ",room);
+      this.room = room;
+      console.log(this.room);
+    });
+
+    await this.socket.emit('getRoomUsers', this.$props.roomId);
+    await this.socket.on('roomUsers', (roomUsers) => {
+      console.log("This room members: ",roomUsers);
+      this.players = roomUsers;
+      console.log(this.players);
+    });
+  },
+  mounted() {
+    
+  },
+  methods: {
+    async submit(e){
+      e.preventDefault()
+      await this.socket.emit('changeRoomState', this.room.code);
+      await this.socket.on('updateRoomState', (room) => {
+        this.room = room;
+        this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.$props.socket, room: this.room } });
+      });
+    },
+    async changeState(e){
+      e.preventDefault();
+      if (this.user.state === 'Waiting') {
+        this.user.state = 'Ready';
+        await this.socket.emit('changeUserState', this.user.id, this.user.state);
+        await this.socket.on('updateUserState', (roomUsers) => {
+          console.log("This room members: ",roomUsers);
+          this.players = roomUsers;
+          console.log(this.players);
+        });
+      }
+      else {
+        this.user.state = 'Waiting';
+        await this.socket.emit('changeUserState', this.user.id, this.user.state);
+        await this.socket.on('updateUserState', (roomUsers) => {
+          console.log("This room members: ",roomUsers);
+          this.players = roomUsers;
+          console.log(this.players);
+        });
+      }
+    },
+  }
 }
 </script>
 
