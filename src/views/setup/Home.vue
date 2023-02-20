@@ -15,7 +15,7 @@
         <form style="padding-bottom: 70%" v-on:submit="join">
             <div class="w-50 mx-auto mb-3">
                 <p class="fw-bold" style="text-align: left;">JOIN ROOM</p>
-                <input class="w-100 px-2" style="height:40px" type="number" placeholder="Room code">
+                <input v-model="roomCode" class="w-100 px-2" style="height:40px" type="number" placeholder="Room code">
             </div>
             <button class="button bg-secondary border-0 py-1 rounded-2 text-white" style="width:70px;">Join</button>
           </form>
@@ -54,54 +54,64 @@
 // import io from "socket.io-client";
 export default {
   props: ['socket'],
-    data() {
-        return {
-          user:{
-            username: null,
-            room: null, 
-          },
-          maxPlayer: 4,
-          roomCode: null,
-          show: false,
-          bodyBgVariant: 'dark',
-          bodyTextVariant: 'white',
-        }
-    },
-    created() {
-      console.log(this.$route.params.socket)
-      this.socket = this.$route.params.socket;
-      this.socket.emit('getCurrentUser'); 
-      this.socket.on('currentUser', (user) => {
-        console.log("Current user: ",user)
-        this.user = user;
-      });
-      console.log(this.user) 
-    },
-    methods: {
-      hideModal() {
-        this.$refs['how-to-play'].hide()
+  data() {
+    return {
+      user:{
+        id: null,
+        username: null,
+        room: null,
+        state: null
       },
-      create(e){
-        e.preventDefault()
-        this.socket.emit('createRoom', this.maxPlayer)
-        this.socket.on('roomCreated', (room) => {
-          console.log("Room created: ", room)
-          this.user.room = room;
-          console.log("Room code: ", this.user.room)
-          this.$router.push({ path: 'lobby/'+this.user.room, params: { socket: this.user.room } })
-        });
-      },
-      join(e){
-        e.preventDefault()
-        this.socket.emit('joinRoom', this.roomCode)
-        this.socket.on('roomJoined', (room) => {
-          console.log("Room joined: ", room)
-          this.user.room = room;
-          console.log("Join code: ", this.user.room)
-          this.$router.push({ path: 'lobby/'+this.user.room, params: { socket: this.user.room } })
-        });
-      }
+      maxPlayer: 4,
+      roomCode: null,
+      show: false,
+      bodyBgVariant: 'dark',
+      bodyTextVariant: 'white',
     }
+  },
+  async created() {
+    console.log(this.$route.params.socket)
+    this.socket = this.$route.params.socket;
+    await this.socket.emit('getCurrentUser'); 
+    await this.socket.on('currentUser', (user) => {
+      console.log("Current user: ",user)
+      this.user = user;
+    });
+    console.log(this.user)
+  },
+  methods: {
+    hideModal() {
+      this.$refs['how-to-play'].hide()
+    },
+    async create(e){
+      e.preventDefault()
+      console.log(this.socket);
+      await this.socket.emit('createRoom', this.maxPlayer)
+      this.socket.on('roomCreated', (room) => {
+        console.log("Room: ", room, "created");
+        this.user.room = room;
+        console.log("Room code: ", this.user.room);
+        console.log(this.$route.params.socket);
+        this.$router.push({ name: 'Lobby', params: { roomId: this.user.room, socket: this.$route.params.socket } })
+      });
+    },
+    async join(e){
+      e.preventDefault()
+      await this.socket.emit('joinRoom', this.roomCode)
+      this.socket.on('roomJoined', (room) => {
+        console.log("Room joined: ", room);
+        if (room != false) {
+          this.user.room = room;
+          console.log("Join code: ", this.user.room);
+          console.log(this.$route.params.socket);
+          this.$router.push({ name: 'Lobby', params: { roomId: this.user.room, socket: this.$route.params.socket } })
+        }
+        else {
+          alert("Wrong");
+        }
+      });
+    }
+  }
 }
 </script>
 

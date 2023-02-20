@@ -35,37 +35,37 @@
 <script>
 import io from "socket.io-client";
 export default {
-    data() {
-        return {
-          socket: {},
-          user:{
-            username: null,
-            room: null, 
-          },
-          show: false,
-          bodyBgVariant: 'dark',
-          bodyTextVariant: 'white',
-        }
-    },
-    created() {
-      this.socket = io('http://localhost:3000');
-      console.log(this.socket)
-    },
-    mounted() {
-
-    },
-    methods: {
-      hideModal() {
-        this.$refs['how-to-play'].hide()
+  data() {
+    return {
+      socket: {},
+      user:{
+        username: null,
+        room: null, 
       },
-      submit(e){
-        e.preventDefault()
-        // this.socket.emit('login', { username: this.username, room: null });
-        console.log('user: ', this.user)
-        this.socket.emit('login', this.user)
-        this.$router.push({ name: 'Home', params: { socket: this.socket } })
-      }
+      show: false,
+      bodyBgVariant: 'dark',
+      bodyTextVariant: 'white',
     }
+  },
+  created() {
+    this.socket = io('http://localhost:3000');
+    console.log(this.socket)
+  },
+  mounted() {
+
+  },
+  methods: {
+    hideModal() {
+      this.$refs['how-to-play'].hide()
+    },
+    submit(e){
+      e.preventDefault()
+      // this.socket.emit('login', { username: this.username, room: null });
+      console.log('user: ', this.user)
+      this.socket.emit('login', this.user)
+      this.$router.push({ name: 'Home', params: { socket: this.socket } })
+    }
+  }
 }
 </script>
 

@@ -98,7 +98,42 @@
 
 <script>
 export default {
+  props: {
+    socket: {
+      require: true
+    },
+    roomId: {
+      require: true
+    },
+    room: {
+      require: true
+    }
+  },
+  data() {
+    return {
+      user:{
+        id: null,
+        username: null,
+        room: null,
+        state: null
+      },
+      players: [],
+      room: null,
+      bodyBgVariant: 'dark',
+      bodyTextVariant: 'white',
+    }
+  },
+  created() {
+    console.log(this.$route);
+    console.log(this.$props.socket);
+    console.log(this.room);
+  },
+  mounted() {
 
+  },
+  methods: {
+
+  }
 }
 </script>
 
