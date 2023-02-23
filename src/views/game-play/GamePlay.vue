@@ -118,7 +118,6 @@ export default {
         state: null
       },
       players: [],
-      room: null,
       bodyBgVariant: 'dark',
       bodyTextVariant: 'white',
     }

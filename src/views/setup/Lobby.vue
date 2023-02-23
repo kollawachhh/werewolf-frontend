@@ -11,85 +11,6 @@
             <p class="ms-auto text-end fs-1 fw-bold">{{ players.length }} / {{ this.room.maxPlayer }} Players</p>
         </div>
         <div class="h-75 player-list-wrapper rounded-4 mt-4 px-3 py-4 ">
-            <!-- <div class="h-100 mx-auto overflow-auto">
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">Host</span>
-                    <span class="ms-auto me-4 h3">Host</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 1</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 2</span>
-                    <span class="ms-auto me-4 h3">Not Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 3</span>
-                    <span class="ms-auto me-4 h3">Not Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 4</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 5</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 6</span>
-                    <span class="ms-auto me-4 h3">Not Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 7</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 8</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 9</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-                <div class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                    </svg>
-                    <span class="h3">User 10</span>
-                    <span class="ms-auto me-4 h3">Ready</span>
-                </div>
-            </div> -->
             <div class="h-100 mx-auto overflow-auto">
                 <div v-for="player in players" :key="player.username" class="d-flex py-1" style="height: 10%;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
@@ -101,11 +22,10 @@
             </div>
         </div>
         <div class="d-flex mt-3">
-            <button v-if="user.state === 'Host'" v-on:click="submit" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length != (room.maxPlayer-1)">Start</button>
-            <button v-else-if="user.state === 'Waiting'" v-on:click="changeState" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Ready</button>
-            <button v-else-if="user.state === 'Ready'" v-on:click="changeState" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Wait</button>
-            <!-- <button class="me-auto ms-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" >Back</button> -->
-            <a class="me-auto ms-5 fw-bold rounded-2 border-0 py-2 text-dark" style="width: 10%; background: #AEAEAE; text-decoration: none;" href="/home">Back</a>
+            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length != (room.maxPlayer-1)">Start</button>
+            <button v-else-if="user.state === 'Waiting'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Ready</button>
+            <button v-else-if="user.state === 'Ready'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Wait</button>
+            <button class="me-auto ms-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" v-on:click="back" >Back</button>
         </div>
     </div>
   </div>
@@ -130,14 +50,19 @@ export default {
         state: null
       },
       players: [],
-      room: null,
+      room: {
+        code: null,
+        maxPlayer: null,
+        state: null
+      },
       bodyBgVariant: 'dark',
       bodyTextVariant: 'white',
     }
   },
   async created() {
-    console.log(this.$route);
-    await this.socket.emit('getCurrentUser'); 
+    this.socket = this.$props.socket;
+    console.log("socket: ", this.socket)
+    await this.socket.emit('getCurrentUser');
     await this.socket.on('currentUser', (user) => {
       console.log("Current user: ",user)
       this.user = user;
@@ -153,44 +78,45 @@ export default {
 
     await this.socket.emit('getRoomUsers', this.$props.roomId);
     await this.socket.on('roomUsers', (roomUsers) => {
-      console.log("This room members: ",roomUsers);
+      console.log("This room members: ", roomUsers);
       this.players = roomUsers;
-      console.log(this.players);
+    });
+    await this.socket.on('updateRoomState', (room) => {
+      this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.socket, room: room } });
     });
   },
   mounted() {
     
   },
   methods: {
-    async submit(e){
-      e.preventDefault()
+    async start(){
       await this.socket.emit('changeRoomState', this.room.code);
-      await this.socket.on('updateRoomState', (room) => {
-        this.room = room;
-        this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.$props.socket, room: this.room } });
-      });
+      /* await this.socket.on('updateRoomState', (room) => {
+        this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.socket, room: room } });
+      }); */
     },
-    async changeState(e){
-      e.preventDefault();
+    async playerStatus() {
       if (this.user.state === 'Waiting') {
         this.user.state = 'Ready';
-        await this.socket.emit('changeUserState', this.user.id, this.user.state);
-        await this.socket.on('updateUserState', (roomUsers) => {
-          console.log("This room members: ",roomUsers);
-          this.players = roomUsers;
-          console.log(this.players);
-        });
       }
       else {
         this.user.state = 'Waiting';
-        await this.socket.emit('changeUserState', this.user.id, this.user.state);
-        await this.socket.on('updateUserState', (roomUsers) => {
-          console.log("This room members: ",roomUsers);
-          this.players = roomUsers;
-          console.log(this.players);
-        });
       }
+      await this.socket.emit('playerStatus', {
+        roomId: this.room.code, 
+        status: this.user.state
+      });
     },
+    async back(e){
+      e.preventDefault();
+      await this.socket.emit('leaveRoom', this.room.code);
+      await this.socket.on('updateRoomUsers', (roomUsers) => {
+        console.log("This room members: ",roomUsers);
+        this.players = roomUsers;
+        console.log(this.players);
+      });
+      this.$router.push({ name: 'Home', params: { socket: this.$props.socket } });
+    }
   }
 }
 </script>
