@@ -65,8 +65,11 @@ export default {
     return {
       socket: {},
       user:{
+        id: null,
         username: null,
-        room: null, 
+        role: null,
+        room: null,
+        state: null
       },
       show: false,
       bodyBgVariant: 'dark',

@@ -49,6 +49,7 @@ export default {
       user:{
         id: null,
         username: null,
+        role: null,
         room: null,
         state: null
       },
@@ -96,9 +97,6 @@ export default {
   methods: {
     async start(){
       await this.socket.emit('changeRoomState', this.room.code);
-      /* await this.socket.on('updateRoomState', (room) => {
-        this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.socket, room: room } });
-      }); */
     },
     async playerStatus() {
       if (this.user.state === 'Waiting') {

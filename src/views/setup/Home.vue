@@ -85,6 +85,7 @@ export default {
       user:{
         id: null,
         username: null,
+        role: null,
         room: null,
         state: null
       },
