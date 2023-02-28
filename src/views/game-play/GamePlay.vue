@@ -18,12 +18,12 @@
         </div>
     </div>
     <div class="w-100 ps-5 pt-5 row">
-        <div class="col ">
+        <div class="col-5">
             <div class="chat-wrapper w-75 rounded-4 px-3 py-3">
                 <div class="d-flex">
                     <button class="mt-2 px-3 py-1 rounded-3 text-white bg-secondary">All v</button>
                 </div>
-                <div class="text-start my-3 px-1 text-white overflow-auto" style="height:180px;">
+                <div class="text-start my-3 px-1 text-white overflow-auto" style="height:180px; width:420px;">
                   <div class="chat-messages"></div>
                 </div>
                 <form class="rounded-2" style="height:35px;" v-on:submit="sendMessage">
@@ -104,7 +104,13 @@ export default {
       const chatMessages = document.querySelector(".chat-messages");
       const div = document.createElement("div");
       div.classList.add("message");
-      div.innerHTML = `<p class="meta">${message.username}: <span>${message.text}</span></p>`;
+      console.log(this.user);
+      if (message.username == this.user.username) {
+        div.innerHTML = `<p class="meta" style="color: #00ff00;">${message.username}: <span>${message.text}</span></p>`;
+      }
+      else {
+        div.innerHTML = `<p class="meta">${message.username}: <span>${message.text}</span></p>`;
+      }
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
       this.msg = '';
