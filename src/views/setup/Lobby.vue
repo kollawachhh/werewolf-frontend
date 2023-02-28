@@ -13,16 +13,19 @@
         <div class="h-75 player-list-wrapper rounded-4 mt-4 px-3 py-4 ">
             <div class="h-100 mx-auto overflow-auto">
                 <div v-for="player in players" :key="player.username" class="d-flex py-1" style="height: 10%;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot mt-2 ms-2 me-4" viewBox="0 0 16 16">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-dot ms-2 me-4" viewBox="0 0 16 16">
+                        <path v-if="player.username == user.username" d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" style="color: #00ff00"/>
+                        <path v-else d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
                     </svg>
-                    <span class="h3">{{ player.username }}</span>
-                    <span class="ms-auto me-4 h3">{{ player.state }}</span>
+                    <span v-if="player.username == user.username" style="color: #00ff00" class="h3">{{ player.username }} (Me)</span>
+                    <span v-else class="h3">{{ player.username }}</span>
+                    <span v-if="player.username == user.username" style="color: #00ff00" class="ms-auto me-4 h3">{{ player.state }}</span>
+                    <span v-else class="ms-auto me-4 h3">{{ player.state }}</span>
                 </div>
             </div>
         </div>
         <div class="d-flex mt-3">
-            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length != (room.maxPlayer-1)">Start</button>
+            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length < 3">Start</button>
             <button v-else-if="user.state === 'Waiting'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Ready</button>
             <button v-else-if="user.state === 'Ready'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Wait</button>
             <button class="me-auto ms-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" v-on:click="back" >Back</button>
@@ -56,6 +59,8 @@ export default {
         maxPlayer: null,
         state: null
       },
+      isUser: "#000000",
+      heightStyle: '10%',
       bodyBgVariant: 'dark',
       bodyTextVariant: 'white',
     }
