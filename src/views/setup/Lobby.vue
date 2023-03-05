@@ -126,16 +126,16 @@ export default {
 
 <style scoped>
 .background{
-    background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../public/images/lobby1.png');
-    background-color: black;
-    height: 100%;
-    background-size: cover;
+  background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../public/images/lobby1.png');
+  background-color: black;
+  height: 100%;
+  background-size: cover;
 }
 .lobby-wrapper{
-    background: rgba(66, 66, 66, 0.7);
+  background: rgba(66, 66, 66, 0.7);
 }
 .player-list-wrapper{
-    background: rgba(105, 105, 105, 0.7);
+  background: rgba(105, 105, 105, 0.7);
 }
 /* width */
 ::-webkit-scrollbar {
