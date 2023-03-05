@@ -127,14 +127,19 @@ export default {
       await this.socket.emit('joinRoom', this.roomCode)
       this.socket.on('roomJoined', (room) => {
         console.log("Room joined: ", room);
-        if (room != false) {
+        if (room != false && room != 'full') {
           this.user.room = room;
           console.log("Join code: ", this.user.room);
           console.log(this.$route.params.socket);
           this.$router.push({ name: 'Lobby', params: { roomId: this.user.room, socket: this.$route.params.socket } })
         }
         else {
-          alert("Wrong");
+          if (room == 'full') {
+            alert("Sorry, this room is full.");
+          } else {
+            alert("There is no room you are looking for, please check your room code again.");
+          }
+          
         }
       });
     }
