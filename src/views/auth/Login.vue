@@ -78,7 +78,6 @@ export default {
   },
   created() {
     this.socket = io('http://localhost:3000');
-    console.log(this.socket)
   },
   mounted() {
 
@@ -89,8 +88,6 @@ export default {
     },
     submit(e){
       e.preventDefault()
-      // this.socket.emit('login', { username: this.username, room: null });
-      console.log('user: ', this.user)
       this.socket.emit('login', this.user)
       this.$router.push({ name: 'Home', params: { socket: this.socket } })
     }
