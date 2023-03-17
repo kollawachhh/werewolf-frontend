@@ -2,9 +2,9 @@
   <div id="game-play" class="game-play">
     <div class="w-100 d-flex">
         <div class="d-flex w-50 ps-5 pt-5">
-            <div class="w-25">
+            <div v-bind:class="isSpeaking ? 'speaking rounded-2 w-170' : 'w-25'">
                 <img v-if="user.role === 'seer' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/seer.png" alt="seer">
-                <img v-if="user.role === 'seer' && user.state === 'Eliminated'" src="../../../public/images/roles/seer_killed.png" alt="seerKilled">
+                <img v-if="user.role === 'seer' && user.state === 'Eliminated'" style="width:170px;" src="../../../public/images/roles/seer_killed.png" alt="seerKilled">
                 <img v-if="user.role === 'werewolf' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/wolf.png" alt="wolf">
                 <img v-if="user.role === 'werewolf' && user.state === 'Eliminated'" style="width:170px;" src="../../../public/images/roles/wolf_killed.png" alt="wolfKilled">
                 <img v-if="user.role === 'guard' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/guard.png" alt="guard">
@@ -43,7 +43,13 @@
             <p class="fs-3"> {{ secDescription }}</p>
         </div>
         <div class="col">
-
+          <div id="audio-button" class="text-center">
+            <video id="user-audio" class="user-audio"></video>
+            <div class="controls">
+              <b-icon v-if="microphone" icon="mic-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
+              <b-icon v-else icon="mic-mute-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
+            </div>
+          </div>
         </div>
     </div>
     <div class="d-flex px-5 pt-5">
@@ -83,7 +89,7 @@
                     <button class="mx-auto border-0 rounded-3 px-4 py-2" @click="hideModal">No</button>
                   </div>
                 </b-modal> -->
-                <b-button @click="showMsgBoxTwo(player)" class="bg-transparent border-0"
+                <b-button @click="showMsgBoxTwo(player)" v-bind:class="player.speaking ? 'speaking bg-transparent' : 'bg-transparent border-0'"
                 :disabled="player.killed || currentPhase === 'meeting' || user.state === 'Eliminated' || !user.isActive ||
                   !(user.role === 'villager' && currentPhase === 'voting') &&
                   !(user.role === 'werewolf' && currentPhase === 'voting') &&
@@ -107,6 +113,7 @@
             </div>
         </div>
     </div>
+    <div id="other-user-audio"></div>
   </div>
 </template>
 
@@ -146,6 +153,18 @@ export default {
       seconds: 0,
       time: 0,
       timer: null,
+
+      //Microphone
+      peers: {},
+      userStream: null,
+      microphone: false,
+      currentUserContainer: null,
+      currentUserAudio: null,
+      otherUserAudio: null,
+      allowMicAccess: '',
+      voiceDetect: null,
+      isSpeaking: false,
+      count: 0,
     }
   },
   async created() {
@@ -160,6 +179,7 @@ export default {
     await this.socket.on('currentUser', (user) => {
       this.user = user;
     });
+
     await this.socket.on('updateUser', () => {
       this.players.forEach((player) => {
         if (player.id === this.user.id) {
@@ -203,6 +223,10 @@ export default {
     await this.socket.on('gameOver', (room) => {
       this.$router.push({ name: 'Lobby', params: { roomId: room.code, socket: this.$route.params.socket } });
     })
+    
+    await this.thisRoomMicrophone();
+
+    this.detectVoiceFromMicrophone();
   },
   computed: {
     prettyTime () {
@@ -262,56 +286,224 @@ export default {
       this.show = false
     },
     showMsgBoxTwo(player) {
-        this.boxTwo = ''
-        let title = ''
-        if(this.currentPhase === 'voting'){
-          title = 'Do you want to vote for '
-        }
-        else if(this.currentPhase === 'seer'){
-          title = 'Do you want to check '
-        }
-        else if(this.currentPhase === 'guard'){
-          title = 'Do you want to save '
-        }
-        else if(this.currentPhase === 'wolf'){
-          title = 'Do you want to eliminate '
-        }
-        this.$bvModal.msgBoxConfirm(`${title + ' ' + player.username + ' ?'}`, {
-          
-          size: 'md',
-          centered: true,
-          'hide-header': true,
-          "hide-footer": true,
-          'body-bg-variant': 'dark',
-          'body-text-variant': 'white',
-          /* buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'YES',
-          cancelTitle: 'NO',
-          footerClass: 'p-2',
-          hideHeaderClose: false, */
-          
-        })
-          .then(value => {
-            if(value) {
-              if(this.currentPhase === 'voting'){
-                this.votePlayer(player.id)
-              }
-              else if(this.currentPhase === 'seer'){
-                this.checkPlayer(player.id)
-              }
-              else if(this.currentPhase === 'guard'){
-                this.savePlayer(player.id)
-              }
-              else if(this.currentPhase === 'wolf'){
-                this.killPlayer(player.id)
-              }
-            }
-          })
-          .catch(err => {
-            // An error occurred
-          })
+      this.boxTwo = ''
+      let title = ''
+      if(this.currentPhase === 'voting'){
+        title = 'Do you want to vote for '
       }
+      else if(this.currentPhase === 'seer'){
+        title = 'Do you want to check '
+      }
+      else if(this.currentPhase === 'guard'){
+        title = 'Do you want to save '
+      }
+      else if(this.currentPhase === 'wolf'){
+        title = 'Do you want to eliminate '
+      }
+      this.$bvModal.msgBoxConfirm(`${title + ' ' + player.username + ' ?'}`, {
+        
+        size: 'md',
+        centered: true,
+        'hide-header': true,
+        "hide-footer": true,
+        'body-bg-variant': 'dark',
+        'body-text-variant': 'white',
+        /* buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: 'YES',
+        cancelTitle: 'NO',
+        footerClass: 'p-2',
+        hideHeaderClose: false, */
+        
+      })
+        .then(value => {
+          if(value) {
+            if(this.currentPhase === 'voting'){
+              this.votePlayer(player.id)
+            }
+            else if(this.currentPhase === 'seer'){
+              this.checkPlayer(player.id)
+            }
+            else if(this.currentPhase === 'guard'){
+              this.savePlayer(player.id)
+            }
+            else if(this.currentPhase === 'wolf'){
+              this.killPlayer(player.id)
+            }
+          }
+        })
+        .catch(err => {
+          // An error occurred
+        })
+    },
+    async thisRoomMicrophone() {
+      let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      this.userStream = stream;
+      this.currentUserAudio = document.getElementById('user-audio');
+      this.currentUserAudio.srcObject = stream;
+
+      this.currentUserContainer = document.getElementById('audio-button');
+      this.otherUserAudio = document.getElementById('other-user-audio');
+      
+      let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
+      mic.enabled = false;
+
+        this.socket.emit('setup room microphone', this.roomId);
+
+        this.socket.on('all other users', (otherUsers) => this.callOtherUsers(otherUsers, stream));
+
+        this.socket.on("connection offer", (payload) => this.handleReceiveOffer(payload, stream));
+
+        this.socket.on('connection answer', (payload) => this.handleAnswer(payload));
+
+        this.socket.on('ice-candidate', (payload) => this.handleReceiveIce(payload));
+    },
+    callOtherUsers(otherUsers, stream) {
+      // otherUsers.forEach(userIdToCall => {
+      //   const peer = this.createPeer(userIdToCall);
+      //   this.peers[userIdToCall] = peer;
+      //   stream.getTracks().forEach(track => {
+      //     peer.addTrack(track, stream);
+      //   });
+      // });
+      let round = otherUsers.indexOf(this.user.id);
+      for (let i = 0; i < round; i++) {
+        const peer = this.createPeer(otherUsers[i]);
+        this.peers[otherUsers[i]] = peer;
+        this.userStream.getTracks().forEach(track => {
+          peer.addTrack(track, this.userStream);
+        });
+      };
+      console.log(otherUsers);
+    },
+    createPeer(userIdToCall) {
+      const peer = new RTCPeerConnection({
+        iceServers: [
+          {
+            urls: "stun:stun.stunprotocol.org"
+          },
+        ]
+      });
+      this.count = this.count + 1;
+      console.log(this.count, ': on process of calling ', userIdToCall, " from " , this.user.id, " and this is the peer: ", peer);
+      peer.onnegotiationneeded = () => userIdToCall ? this.handleNegotiationNeededEvent(peer, userIdToCall) : null;
+      peer.onicecandidate = this.handleICECandidateEvent;
+      peer.ontrack = (e) => {
+        const container = document.createElement('div');
+        container.classList.add('remote-audio-container');
+        const audio = document.createElement('video');
+        audio.srcObject = e.streams[0];
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.classList.add("remote-audio");
+        container.appendChild(audio);
+        container.id = userIdToCall;
+        this.otherUserAudio.appendChild(container);
+      }
+      return peer;
+    },
+    async handleNegotiationNeededEvent(peer, userIdToCall) {
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      const payload = {
+        sdp: peer.localDescription,
+        userIdToCall,
+      };
+
+      this.socket.emit('peer connection request', payload);
+    },
+    async handleReceiveOffer({ sdp, callerId }, stream) {
+      const peer = this.createPeer(callerId);
+      this.peers[callerId] = peer;
+      const desc = new RTCSessionDescription(sdp);
+      await peer.setRemoteDescription(desc);
+
+      stream.getTracks().forEach(track => {
+        peer.addTrack(track, stream);
+      });
+
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+
+      const payload = {
+        userToAnswerTo: callerId,
+        sdp: peer.localDescription,
+      };
+
+      this.socket.emit('connection answer', payload);
+    },
+    handleAnswer({ sdp, answererId }) {
+      const desc = new RTCSessionDescription(sdp);
+      this.peers[answererId].setRemoteDescription(desc).catch(e => console.log(e));
+    },
+    handleICECandidateEvent(e) {
+      if (e.candidate) {
+        Object.keys(this.peers).forEach(id => {
+          const payload = {
+            target: id,
+            candidate: e.candidate,
+          }
+          this.socket.emit("ice-candidate", payload);
+        });
+      }
+    },
+    handleReceiveIce({ candidate, from }) {
+      const inComingCandidate = new RTCIceCandidate(candidate);
+      this.peers[from].addIceCandidate(inComingCandidate);
+    },
+    detectVoiceFromMicrophone() {
+      const audioContext = new AudioContext();
+      const analyzer = audioContext.createAnalyser();
+      analyzer.fftSize = 512;
+      analyzer.smoothingTimeConstant = 0.1;
+      const sourceNode = audioContext.createMediaStreamSource(this.userStream);
+      sourceNode.connect(analyzer);
+
+      setInterval(() => {
+        const fftBins = new Float32Array(analyzer.frequencyBinCount);
+        analyzer.getFloatFrequencyData(fftBins);
+        const audioPeakDB = Math.max(...fftBins);
+        // console.log(audioPeakDB);
+
+        const frequencyRangeData = new Uint8Array(analyzer.frequencyBinCount);
+        analyzer.getByteFrequencyData(frequencyRangeData);
+        const sum = frequencyRangeData.reduce((p, c) => p + c, 0);
+        const audioMeter = Math.sqrt(sum / frequencyRangeData.length);
+        // console.log(audioMeter);
+
+        if (audioPeakDB > -50) {
+          this.isSpeaking = true;
+        } else if (audioPeakDB <= -50 && audioMeter > 0) {
+          this.isSpeaking = false;
+        }
+
+        this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
+
+        this.socket.on("show highlight", (users) => {
+          this.players = users;
+        })
+      }, 10);
+    },
+    async toggleMic() {
+      // await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
+      //   this.allowMicAccess = permissionStatus.state;
+      // })
+      // if (this.allowMicAccess == 'granted' && this.userStream != null) {
+        let audioTrack = this.userStream.getTracks().find(track => track.kind === 'audio');
+        if (audioTrack.enabled) {
+          audioTrack.enabled = false;
+          this.microphone = false;
+        } else {
+          audioTrack.enabled = true;
+          this.microphone = true;
+        }
+      // } else if ((this.allowMicAccess == 'granted' && this.userStream == null) || this.allowMicAccess == 'prompt') {
+      //   this.thisRoomMicrophone();
+      // } else {
+      //   alert("you have blocked the microphone access for this site.");
+      //   // this.thisRoomMicrophone();
+      // }
+    },
   }
 }
 </script>
@@ -364,5 +556,8 @@ export default {
 }
 .m-title-wrapper{
   border-bottom: 2px solid white;
+}
+.speaking{
+  border: 3px solid #FFFFFF;
 }
 </style>

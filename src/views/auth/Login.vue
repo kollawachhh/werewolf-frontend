@@ -40,7 +40,7 @@
             <p class="lh-lg" style="text-decoration: underline;">The werewolf's side</p>
             <p>1. The werewolf / The werewolves</p>
             <p>&emsp;Every night, pick one player to kill; if pick more than one person, they have to vote to kill someone, </p>
-            <p>&emsp;they can't vote to kill the werewolf.</p>
+            <p>&emsp;they can't vote to kill each other.</p>
           </div>
         </b-modal>
       </div>
