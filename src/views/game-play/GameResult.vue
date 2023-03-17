@@ -25,7 +25,9 @@
                     </div>
                     <div class="text-start text-white mb-5 werewolfVoted">
                         <p class="fs-1 fw-bold">The most werewolf voted</p>
-                        <p class="fs-4"><span style="color: chartreuse;">{{voted_werewolf}}</span> : {{voted_werewolf_num}} time</p>
+                        <div v-for="player in voted_werewolf" :key="player">
+                            <p class="fs-4"><span style="color: chartreuse;">{{player}}</span> : {{voted_werewolf_num}} time</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-6 p-0 px-5">
@@ -52,11 +54,15 @@
                     </div>
                     <div class="text-start text-white mb-5">
                         <p class="fs-1 fw-bold">Remain werewolf : {{remainWerewolf_num}}</p>
-                        <p v-if="remainWerewolf_num !== 0" class="fs-4"><span class="text-danger">{{remainWerewolf}}</span></p>
+                        <div v-for="player in remainWerewolf" :key="player">
+                            <p class="fs-4 text-danger">{{player}}</p>
+                        </div>
                     </div>
                     <div class="text-start text-white mb-5">
                         <p class="fs-1 fw-bold">Eliminated werewolf : {{eliminatedWerewolf_num}}</p>
-                        <p class="fs-4"><span class="text-danger">{{eliminatedWerewolf}}</span></p>
+                        <div v-for="player in eliminatedWerewolf" :key="player">
+                            <p class="fs-4 text-danger">{{player}}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -99,13 +105,13 @@ export default {
             checked_num: 0,
             guard: {},
             protected_num: 0,
-            voted_werewolf: {},
+            voted_werewolf: [],
             voted_werewolf_num: 0,
             eliminatedSeer: false,
             eliminateGuard: false,
-            eliminatedWerewolf: {},
+            eliminatedWerewolf: [],
             eliminatedWerewolf_num: 0,
-            remainWerewolf: {},
+            remainWerewolf: [],
             remainWerewolf_num: 0,
 
             //Audio
