@@ -165,6 +165,9 @@ export default {
       voiceDetect: null,
       isSpeaking: false,
       count: 0,
+      audioContext: null,
+      analyzer: null,
+      sourceNode: null,
       audioPeakDB: null,
       audioMeter: null,
     }
@@ -227,6 +230,9 @@ export default {
     })
 
     await this.thisRoomMicrophone();
+    
+    await this.detectVoiceFromMicrophone();
+
     await this.socket.emit('setup room microphone', this.roomId);
 
     await this.socket.on('all other users', this.callOtherUsers);
@@ -241,19 +247,19 @@ export default {
       this.players = users;
     })
   },
-  // watch: {
-  //   microphone(newState, oldState) {
-  //     if (newState == true) {
-  //       this.detectVoiceFromMicrophone();
-  //     }
-  //   },
-  //   isSpeaking(newState, oldState) {
-  //     if (newState != oldState) {
-  //       console.log(this.isSpeaking);
-  //       this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
-  //     }
-  //   },
-  // },
+  watch: {
+    microphone(newState, oldState) {
+      if (newState == true) {
+        this.highlightSpeaker();
+      }
+    },
+    isSpeaking(newState, oldState) {
+      if (newState != oldState) {
+        console.log(this.isSpeaking);
+        this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
+      }
+    },
+  },
   computed: {
     prettyTime () {
 			 let time = this.time / 60
@@ -384,7 +390,7 @@ export default {
             peer.addTrack(track, this.userStream);
           });
         };
-      }, (round * 3));
+      }, ((round + 10) * 5));
     },
     createPeer(userIdToCall) {
       const peer = new RTCPeerConnection({
@@ -461,31 +467,32 @@ export default {
       const inComingCandidate = new RTCIceCandidate(candidate);
       this.peers[from].addIceCandidate(inComingCandidate);
     },
-    // detectVoiceFromMicrophone() {
-    //   const audioContext = new AudioContext();
-    //   const analyzer = audioContext.createAnalyser();
-    //   analyzer.fftSize = 512;
-    //   analyzer.smoothingTimeConstant = 0.1;
-    //   const sourceNode = audioContext.createMediaStreamSource(this.userStream);
-    //   sourceNode.connect(analyzer);
+    detectVoiceFromMicrophone() {
+      this.audioContext = new AudioContext();
+      this.analyzer = this.audioContext.createAnalyser();
+      this.analyzer.fftSize = 512;
+      this.analyzer.smoothingTimeConstant = 0.1;
+      this.sourceNode = this.audioContext.createMediaStreamSource(this.userStream);
+      this.sourceNode.connect(this.analyzer);
+    },
+    highlightSpeaker() {
+      setInterval(async () => {
+        const fftBins = new Float32Array(this.analyzer.frequencyBinCount);
+        await this.analyzer.getFloatFrequencyData(fftBins);
+        this.audioPeakDB = Math.max(...fftBins);
 
-    //   setInterval(() => {
-    //     const fftBins = new Float32Array(analyzer.frequencyBinCount);
-    //     analyzer.getFloatFrequencyData(fftBins);
-    //     this.audioPeakDB = Math.max(...fftBins);
+        const frequencyRangeData = new Uint8Array(this.analyzer.frequencyBinCount);
+        await this.analyzer.getByteFrequencyData(frequencyRangeData);
+        const sum = frequencyRangeData.reduce((p, c) => p + c, 0);
+        this.audioMeter = Math.sqrt(sum / frequencyRangeData.length);
 
-    //     const frequencyRangeData = new Uint8Array(analyzer.frequencyBinCount);
-    //     analyzer.getByteFrequencyData(frequencyRangeData);
-    //     const sum = frequencyRangeData.reduce((p, c) => p + c, 0);
-    //     this.audioMeter = Math.sqrt(sum / frequencyRangeData.length);
-
-    //     if (this.audioPeakDB > -50) {
-    //       this.isSpeaking = true;
-    //     } else if (this.audioPeakDB <= -50 && this.audioMeter > 0) {
-    //       this.isSpeaking = false;
-    //     }
-    //   }, 500);
-    // },
+        if (this.audioPeakDB > -50) {
+          this.isSpeaking = true;
+        } else if (this.audioPeakDB <= -50 && this.audioMeter > 0) {
+          this.isSpeaking = false;
+        }
+      }, 500);
+    },
     async toggleMic() {
       // await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
       //   this.allowMicAccess = permissionStatus.state;
