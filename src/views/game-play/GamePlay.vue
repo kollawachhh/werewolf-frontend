@@ -165,6 +165,8 @@ export default {
       voiceDetect: null,
       isSpeaking: false,
       count: 0,
+      audioPeakDB: null,
+      audioMeter: null,
     }
   },
   async created() {
@@ -223,11 +225,35 @@ export default {
     await this.socket.on('gameOver', (room) => {
       this.$router.push({ name: 'Lobby', params: { roomId: room.code, socket: this.$route.params.socket } });
     })
-    
-    await this.thisRoomMicrophone();
 
-    this.detectVoiceFromMicrophone();
+    await this.thisRoomMicrophone();
+    await this.socket.emit('setup room microphone', this.roomId);
+
+    await this.socket.on('all other users', this.callOtherUsers);
+
+    await this.socket.on("connection offer", this.handleReceiveOffer);
+
+    await this.socket.on('connection answer', this.handleAnswer);
+
+    await this.socket.on('ice-candidate', this.handleReceiveIce);
+
+    await this.socket.on("show highlight", (users) => {
+      this.players = users;
+    })
   },
+  // watch: {
+  //   microphone(newState, oldState) {
+  //     if (newState == true) {
+  //       this.detectVoiceFromMicrophone();
+  //     }
+  //   },
+  //   isSpeaking(newState, oldState) {
+  //     if (newState != oldState) {
+  //       console.log(this.isSpeaking);
+  //       this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
+  //     }
+  //   },
+  // },
   computed: {
     prettyTime () {
 			 let time = this.time / 60
@@ -347,34 +373,18 @@ export default {
       
       let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
       mic.enabled = false;
-
-        this.socket.emit('setup room microphone', this.roomId);
-
-        this.socket.on('all other users', (otherUsers) => this.callOtherUsers(otherUsers, stream));
-
-        this.socket.on("connection offer", (payload) => this.handleReceiveOffer(payload, stream));
-
-        this.socket.on('connection answer', (payload) => this.handleAnswer(payload));
-
-        this.socket.on('ice-candidate', (payload) => this.handleReceiveIce(payload));
     },
-    callOtherUsers(otherUsers, stream) {
-      // otherUsers.forEach(userIdToCall => {
-      //   const peer = this.createPeer(userIdToCall);
-      //   this.peers[userIdToCall] = peer;
-      //   stream.getTracks().forEach(track => {
-      //     peer.addTrack(track, stream);
-      //   });
-      // });
+    callOtherUsers(otherUsers) {
       let round = otherUsers.indexOf(this.user.id);
-      for (let i = 0; i < round; i++) {
-        const peer = this.createPeer(otherUsers[i]);
-        this.peers[otherUsers[i]] = peer;
-        this.userStream.getTracks().forEach(track => {
-          peer.addTrack(track, this.userStream);
-        });
-      };
-      console.log(otherUsers);
+      setTimeout(() => {
+        for (let i = 0; i < round; i++) {
+          const peer = this.createPeer(otherUsers[i]);
+          this.peers[otherUsers[i]] = peer;
+          this.userStream.getTracks().forEach(track => {
+            peer.addTrack(track, this.userStream);
+          });
+        };
+      }, (round * 3));
     },
     createPeer(userIdToCall) {
       const peer = new RTCPeerConnection({
@@ -412,14 +422,14 @@ export default {
 
       this.socket.emit('peer connection request', payload);
     },
-    async handleReceiveOffer({ sdp, callerId }, stream) {
+    async handleReceiveOffer({ sdp, callerId }) {
       const peer = this.createPeer(callerId);
       this.peers[callerId] = peer;
       const desc = new RTCSessionDescription(sdp);
       await peer.setRemoteDescription(desc);
 
-      stream.getTracks().forEach(track => {
-        peer.addTrack(track, stream);
+      this.userStream.getTracks().forEach(track => {
+        peer.addTrack(track, this.userStream);
       });
 
       const answer = await peer.createAnswer();
@@ -451,39 +461,31 @@ export default {
       const inComingCandidate = new RTCIceCandidate(candidate);
       this.peers[from].addIceCandidate(inComingCandidate);
     },
-    detectVoiceFromMicrophone() {
-      const audioContext = new AudioContext();
-      const analyzer = audioContext.createAnalyser();
-      analyzer.fftSize = 512;
-      analyzer.smoothingTimeConstant = 0.1;
-      const sourceNode = audioContext.createMediaStreamSource(this.userStream);
-      sourceNode.connect(analyzer);
+    // detectVoiceFromMicrophone() {
+    //   const audioContext = new AudioContext();
+    //   const analyzer = audioContext.createAnalyser();
+    //   analyzer.fftSize = 512;
+    //   analyzer.smoothingTimeConstant = 0.1;
+    //   const sourceNode = audioContext.createMediaStreamSource(this.userStream);
+    //   sourceNode.connect(analyzer);
 
-      setInterval(() => {
-        const fftBins = new Float32Array(analyzer.frequencyBinCount);
-        analyzer.getFloatFrequencyData(fftBins);
-        const audioPeakDB = Math.max(...fftBins);
-        // console.log(audioPeakDB);
+    //   setInterval(() => {
+    //     const fftBins = new Float32Array(analyzer.frequencyBinCount);
+    //     analyzer.getFloatFrequencyData(fftBins);
+    //     this.audioPeakDB = Math.max(...fftBins);
 
-        const frequencyRangeData = new Uint8Array(analyzer.frequencyBinCount);
-        analyzer.getByteFrequencyData(frequencyRangeData);
-        const sum = frequencyRangeData.reduce((p, c) => p + c, 0);
-        const audioMeter = Math.sqrt(sum / frequencyRangeData.length);
-        // console.log(audioMeter);
+    //     const frequencyRangeData = new Uint8Array(analyzer.frequencyBinCount);
+    //     analyzer.getByteFrequencyData(frequencyRangeData);
+    //     const sum = frequencyRangeData.reduce((p, c) => p + c, 0);
+    //     this.audioMeter = Math.sqrt(sum / frequencyRangeData.length);
 
-        if (audioPeakDB > -50) {
-          this.isSpeaking = true;
-        } else if (audioPeakDB <= -50 && audioMeter > 0) {
-          this.isSpeaking = false;
-        }
-
-        this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
-
-        this.socket.on("show highlight", (users) => {
-          this.players = users;
-        })
-      }, 10);
-    },
+    //     if (this.audioPeakDB > -50) {
+    //       this.isSpeaking = true;
+    //     } else if (this.audioPeakDB <= -50 && this.audioMeter > 0) {
+    //       this.isSpeaking = false;
+    //     }
+    //   }, 500);
+    // },
     async toggleMic() {
       // await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
       //   this.allowMicAccess = permissionStatus.state;
