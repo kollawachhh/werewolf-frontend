@@ -1,14 +1,13 @@
 <template>
-  <div id="lobby" class="w-100 h-100 px-5 background">
-    <div class="text-white text-left pt-5 mb-4" style="text-align: left;">
-        <span class="display-2 fw-bold">WEREWOLF</span>
-        <br>
-        <span class="fs-3 fw-bold">Web game project</span>
+  <div id="lobby" class="container-fluid h-100 px-5">
+    <div class="row h-25 text-white text-left" style="text-align: left;">
+        <p class="display-2 fw-bold mb-0 mt-5">WEREWOLF</p>
+        <p class="fs-3 fw-bold">Web game project</p>
     </div>
-    <div class="h-75 lobby-wrapper rounded-4 text-white px-5 pt-4">
+    <div class="row lobby-wrapper rounded-4 text-white px-5 pt-4" style="height: 70%;">
         <div class="d-flex" style="border-bottom: 2px solid white;">
             <p class="me-auto text-start fs-1 fw-bold">Lobby #{{ roomId }}</p>
-            <p class="ms-auto text-end fs-1 fw-bold">{{ players.length }} / {{ this.room.maxPlayer }} Players</p>
+            <p class="ms-auto text-end fs-1 fw-bold">{{ players.length }} / {{ this.room.setting.maxPlayer }} Players</p>
         </div>
         <div class="h-75 player-list-wrapper rounded-4 mt-4 px-3 py-4 ">
             <div class="h-100 mx-auto overflow-auto">
@@ -24,11 +23,11 @@
                 </div>
             </div>
         </div>
-        <div class="d-flex mt-3">
-            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length < 3">Start</button>
-            <button v-else-if="user.state === 'Waiting'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Ready</button>
-            <button v-else-if="user.state === 'Ready'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;">Wait</button>
-            <button class="me-auto ms-5 fw-bold rounded-2 border-0 py-2" style="width: 10%; background: #AEAEAE;" v-on:click="back" >Back</button>
+        <div class="d-flex pb-2">
+            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length < 3">Start</button>
+            <button v-else-if="user.state === 'Waiting'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;">Ready</button>
+            <button v-else-if="user.state === 'Ready'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;">Wait</button>
+            <button class="me-auto ms-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;" v-on:click="back" >Back</button>
         </div>
     </div>
   </div>
@@ -56,38 +55,47 @@ export default {
       players: [],
       room: {
         code: null,
-        maxPlayer: null,
-        state: null
+        state: null,
+        setting: {
+          maxPlayer: null,
+          meetingTime: 10,
+          voteTime: 10,
+          seerTime: 10,
+          guardTime: 10,
+          werewolfTime: 10,
+        },
       },
       isUser: "#000000",
       heightStyle: '10%',
       bodyBgVariant: 'dark',
       bodyTextVariant: 'white',
+      img: 1,
+
+      bgTime: null,
     }
   },
   async created() {
+    if(this.$route.params.socket == null) {
+      this.$router.push({ name: 'Login' })
+    }
+    this.bgTime = setInterval(this.changeBgLobby, 5000)
     this.socket = this.$props.socket;
-    console.log("socket: ", this.socket)
     await this.socket.emit('getCurrentUser');
     await this.socket.on('currentUser', (user) => {
-      console.log("Current user: ",user)
       this.user = user;
-      console.log(this.socket);
     });
 
     await this.socket.emit('getRoom', this.$props.roomId);
     await this.socket.on('thisRoom', (room) => {
-      console.log("This room: ",room);
       this.room = room;
-      console.log(this.room);
     });
 
     await this.socket.emit('getRoomUsers', this.$props.roomId);
     await this.socket.on('roomUsers', (roomUsers) => {
-      console.log("This room members: ", roomUsers);
       this.players = roomUsers;
     });
     await this.socket.on('updateRoomState', (room) => {
+      clearInterval(this.bgTime);
       this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.socket, room: room } });
     });
   },
@@ -114,18 +122,39 @@ export default {
       e.preventDefault();
       await this.socket.emit('leaveRoom', this.room.code);
       await this.socket.on('updateRoomUsers', (roomUsers) => {
-        console.log("This room members: ",roomUsers);
         this.players = roomUsers;
-        console.log(this.players);
       });
+      clearInterval(this.bgTime);
       this.$router.push({ name: 'Home', params: { socket: this.$props.socket } });
+    },
+    changeBgLobby() {
+        let bg = ""
+        if(this.img == 1){
+          bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/lobby2.png')"
+          this.img = 2
+        }
+        else if (this.img == 2){
+          bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/lobby3.jpg')"
+          this.img = 3
+        }
+        else {
+          this.img = 1
+          bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/lobby1.png')"
+        }
+
+        const section = document.getElementById('lobby') 
+        section.style.background = bg
+        section.style.backgroundColor = "black"
+        section.style.backgroundSize = "cover"
+        section.style.height = "100%"
+
     }
   }
 }
 </script>
 
 <style scoped>
-.background{
+#lobby{
   background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../public/images/lobby1.png');
   background-color: black;
   height: 100%;

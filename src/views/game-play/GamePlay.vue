@@ -1,55 +1,65 @@
 <template>
-  <div id="game-play" class="game-play">
-    <div class="w-100 d-flex">
-        <div class="d-flex w-50 ps-5 pt-5">
-            <div class="w-25">
-                <img v-if="user.role === 'seer' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/seer.png" alt="seer">
-                <img v-if="user.role === 'seer' && user.state === 'Eliminated'" src="../../../public/images/roles/seer_killed.png" alt="seerKilled">
-                <img v-if="user.role === 'werewolf' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/wolf.png" alt="wolf">
-                <img v-if="user.role === 'werewolf' && user.state === 'Eliminated'" style="width:170px;" src="../../../public/images/roles/wolf_killed.png" alt="wolfKilled">
-                <img v-if="user.role === 'guard' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/guard.png" alt="guard">
-                <img v-if="user.role === 'guard' && user.state === 'Eliminated'" style="width:170px;" src="../../../public/images/roles/guard_killled.png" alt="guardKilled">
-                <img v-if="user.role === 'villager' && user.state === 'Alive'" style="width:170px;" src="../../../public/images/roles/villager.png" alt="villager">
-                <img v-if="user.role === 'villager' && user.state === 'Eliminated'" style="width:170px;" src="../../../public/images/roles/villager_killed.png" alt="villagerKilled">
+  <div id="game-play" class="container-fluid p-0">
+    <div class="row w-100 d-flex m-0">
+        <div class="col-6 d-flex ps-5 pt-5">
+            <div class="col-3">
+                <img v-if="user.role === 'seer' && user.state === 'Alive'" style="height:258px;" src="../../../public/images/roles/seer.png" alt="seer">
+                <img v-if="user.role === 'seer' && user.state === 'Eliminated'" style="height:258px;" src="../../../public/images/roles/seer_killed.png" alt="seerKilled">
+                <img v-if="user.role === 'werewolf' && user.state === 'Alive'" style="height:258px;" src="../../../public/images/roles/wolf.png" alt="wolf">
+                <img v-if="user.role === 'werewolf' && user.state === 'Eliminated'" style="height:258px;" src="../../../public/images/roles/wolf_killed.png" alt="wolfKilled">
+                <img v-if="user.role === 'guard' && user.state === 'Alive'" style="height:258px;" src="../../../public/images/roles/guard.png" alt="guard">
+                <img v-if="user.role === 'guard' && user.state === 'Eliminated'" style="height:258px;" src="../../../public/images/roles/guard_killled.png" alt="guardKilled">
+                <img v-if="user.role === 'villager' && user.state === 'Alive'" style="height:258px;" src="../../../public/images/roles/villager.png" alt="villager">
+                <img v-if="user.role === 'villager' && user.state === 'Eliminated'" style="height:258px;" src="../../../public/images/roles/villager_killed.png" alt="villagerKilled">
             </div>
-            <div class="text-start text-white ms-4 w-50">
+            <div class="col-9 text-start text-white ms-4">
                 <p class="display-5">{{ user.username }} <span v-bind:class="user.state === 'Alive' ? 'text-success' : 'text-danger'">({{ user.state }})</span></p>
-                <p class="fs-2 ">Role: <span v-bind:class="user.role === 'werewolf' ? 'text-danger': 'text-success'">{{ user.role }}</span></p>
-                <p class="fs-2">Day: <span>{{ day }}</span></p>
-                <p class="fs-2">Time Remaining: {{ prettyTime }}</p>
+                <p class="fs-2 mb-0 lh-lg">Role: <span v-bind:class="user.role === 'werewolf' ? 'text-danger': 'text-success'">{{ user.role }}</span></p>
+                <p class="fs-2 mb-0 lh-lg">Day: <span>{{ day }}</span></p>
+                <p class="fs-2 mb-0 lh-lg">Time Remaining: {{ prettyTime }}</p>
             </div>
         </div>
-        <div class="w-50 text-end pe-5 pt-4 text-white">
+        <div class="col-6 text-end pe-5 pt-4 text-white">
             <span class="display-4">{{period}}</span>
         </div>
     </div>
-    <div class="w-100 ps-5 pt-5 row">
-        <div class="col-5">
-            <div class="chat-wrapper w-75 rounded-4 px-3 py-3">
-                <div class="d-flex">
-                    <button class="mt-2 px-3 py-1 rounded-3 text-white bg-secondary">All v</button>
+    <div class="d-flex ps-5 pt-5" style="height: 35%;">
+        <div class="col-4 h-100">
+            <div class="row chat-wrapper h-100 rounded-4 px-3 py-3">
+              <div class="col-12">
+                <div class="row d-flex" style="height:17%;">
+                  <button disabled :hidden="user.role === 'werewolf'" class=" h-100 mt-2 rounded-3 text-white bg-secondary" style="width: 10%;" @click="groupChat = 'all'">All</button>
+                  <button :hidden="user.role !== 'werewolf'" class="h-100 mt-2 rounded-3 text-white bg-secondary" style="width: 15%;" v-bind:class="groupChat === 'all' ? 'bg-success': 'bg-secondary'" @click="groupChat = 'all'">All</button>
+                  <button :hidden="user.role !== 'werewolf'" class="h-100 mt-2 ms-2 py-1 rounded-3 text-white bg-secondary" style="width: 15%;" v-bind:class="groupChat === 'werewolf' ? 'bg-danger': 'bg-secondary'" @click="groupChat = 'werewolf'">Werewolf</button>
                 </div>
-                <div class="text-start my-3 px-1 text-white overflow-auto" style="height:180px; width:420px;">
-                  <div class="chat-messages"></div>
+                <div class="row h-50 text-start my-3 text-white overflow-auto">
+                  <div :hidden="groupChat === 'werewolf'" class="chat-messages"></div>
+                  <div :hidden="groupChat === 'all'" class="werewolf-messages"></div>
                 </div>
-                <form class="rounded-2" style="height:35px;" v-on:submit="sendMessage">
-                    <input class="w-75 h-100 rounded-2 bg-secondary text-white px-2" type="text" v-model="msg">
-                    <button class="bg-secondary ms-3 px-4 rounded-2 h-100 text-white" type="submit">Send</button>
+                <form v-if="groupChat === 'all'" class="row d-flex rounded-2" style="height:17%;" v-on:submit="sendMessage">
+                    <input :disabled="this.period === 'Night' || user.state === 'Eliminated'" class="w-75 h-100 rounded-2 bg-secondary text-white px-2" type="text" v-model="msg">
+                    <button :disabled="this.period === 'Night' || user.state === 'Eliminated'" class="h-100 bg-secondary rounded-2 text-white ms-auto" style="width: 20%;" type="submit">Send</button>
                 </form>
+                <form v-if="groupChat === 'werewolf'" class="row d-flex rounded-2" style="height:17%;" v-on:submit="sendMessageWerewolf">
+                    <input :disabled="(this.period === 'Night' && this.currentPhase !== 'wolf') || user.state === 'Eliminated'" class="w-75 h-100 rounded-2 bg-secondary text-white px-2" type="text" v-model="msgWerewolf">
+                    <button :disabled="(this.period === 'Night' && this.currentPhase !== 'wolf') || user.state === 'Eliminated'" class="h-100 bg-secondary rounded-2 text-white ms-auto" style="width: 20%;" type="submit">Send</button>
+                </form>
+              </div>
             </div>
+                
         </div>
-        <div class="col container d-block justify-content-center align-items-center text-white text-center pt-5">
+        <div class="col-4 d-block justify-content-center align-items-center text-white text-center pt-5">
             <p class="display-1">{{ description }}</p>
             <p class="fs-3"> {{ secDescription }}</p>
         </div>
-        <div class="col">
+        <div class="col-4">
 
         </div>
     </div>
-    <div class="d-flex px-5 pt-5">
-        <div class="d-flex overflow-auto">
-            <div v-for="player in players" :key="player.username">
-              <div v-if="player.username !== user.username" class="text-white mx-5 mb-4">
+    <div class="row w-100 d-flex px-5 mx-auto">
+        <div class="d-flex p-0 h-25" style="width: 95%; overflow-x: scroll; position: fixed; bottom: 0;">
+            <div v-for="player in players" :key="player.username" class="h-100">
+              <div v-if="player.username !== user.username" class="text-white mx-5 h-100">
                 <p>{{ player.username }} <span v-bind:class="player.state === 'Eliminated' ? 'text-danger': 'text-success'">({{ player.state }})</span></p>
                 <!-- <b-button v-b-modal.modal-center class="bg-transparent border-0" 
                   :disabled="player.killed || currentPhase === 'meeting' || 
@@ -83,27 +93,36 @@
                     <button class="mx-auto border-0 rounded-3 px-4 py-2" @click="hideModal">No</button>
                   </div>
                 </b-modal> -->
-                <b-button @click="showMsgBoxTwo(player)" class="bg-transparent border-0"
+                <b-button @click="showMsgBoxTwo(player)" class="bg-transparent border-0 h-75"
                 :disabled="player.killed || currentPhase === 'meeting' || user.state === 'Eliminated' || !user.isActive ||
                   !(user.role === 'villager' && currentPhase === 'voting') &&
                   !(user.role === 'werewolf' && currentPhase === 'voting') &&
                   !(user.role === 'seer' && currentPhase === 'voting') &&
                   !(user.role === 'guard' && currentPhase === 'voting') &&
-                  !(user.role === 'werewolf' && currentPhase === 'wolf') &&
+                  !(user.role === 'werewolf' && currentPhase === 'wolf' && player.role !== 'werewolf') &&
                   !(user.role === 'seer' && currentPhase === 'seer' && !player.checked) &&
                   !(user.role === 'guard' && currentPhase === 'guard')">
-                  <img v-if="(user.role !== 'seer' && user.role !== 'guard' && player.state === 'Alive') || 
+                  <img v-if="(user.role === 'villager' && player.state === 'Alive') || 
                     (user.role === 'seer' && player.state === 'Alive' && !player.checked) ||
-                    (user.role === 'guard' && player.state === 'Alive' && !player.saved)" src="../../../public/images/roles/Unknown_card.png" class="unknown-player rounded-2" style="width:100px;" alt="">
-                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role !== 'werewolf'" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-checked rounded-2" style="width:100px;" alt="">
-                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" style="width:100px;" alt="">
-                  <img v-if="user.role === 'guard' && player.saved" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-saved rounded-2" style="width:100px;" alt="">
-                  <img v-if="player.state === 'Eliminated' && player.role === 'villager'" src="../../../public/images/roles/villager_killed.png" style="width:100px;" alt="">
-                  <img v-if="player.state === 'Eliminated' && player.role === 'wolf'" src="../../../public/images/roles/wolf_killed.png" style="width:100px;" alt="">
-                  <img v-if="player.state === 'Eliminated' && player.role === 'seer'" src="../../../public/images/roles/seer_killed.png" style="width:100px;" alt="">
-                  <img v-if="player.state === 'Eliminated' && player.role === 'guard'" src="../../../public/images/roles/guard_killled.png" style="width:100px;" alt="">
+                    (user.role === 'guard' && player.state === 'Alive' && !player.saved) ||
+                    (user.role === 'werewolf' && player.state === 'Alive' && !player.killed && player.role !== 'werewolf')" src="../../../public/images/roles/Unknown_card.png" v-bind:class="player.saved ? 'unknown-player-saved rounded-2 h-100' : 'unknown-player player-btn rounded-2 h-100'" alt="">
+                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role !== 'werewolf'" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-checked player-btn rounded-2 h-100" alt="">
+                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" class="player-btn h-100" alt="">
+                  <img v-if="user.role === 'werewolf' && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" class="h-100" alt="">
+                  <img v-if="user.role === 'guard' && player.saved" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-saved rounded-2 h-100" alt="">
+                  <img v-if="user.role === 'werewolf' && player.state === 'Alive' && player.killed" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-voted-killed rounded-2 h-100" alt="">
+                  <img v-if="player.state === 'Eliminated' && player.role === 'villager'" src="../../../public/images/roles/villager_killed.png" class="h-100" alt="">
+                  <img v-if="player.state === 'Eliminated' && player.role === 'werewolf'" src="../../../public/images/roles/wolf_killed.png" class="h-100" alt="">
+                  <img v-if="player.state === 'Eliminated' && player.role === 'seer'" src="../../../public/images/roles/seer_killed.png" class="h-100" alt="">
+                  <img v-if="player.state === 'Eliminated' && player.role === 'guard'" src="../../../public/images/roles/guard_killled.png" class="h-100" alt="">
                 </b-button>
               </div>
+              <!-- <div class="text-white mx-5 h-100">
+                <p>Username1<span>(Alive)</span></p>
+                <b-button class="h-75">
+                  <img src="../../../public/images/roles/Unknown_card.png" class="unknown-player player-btn rounded-2 h-100" alt="">
+                </b-button>
+              </div> -->
             </div>
         </div>
     </div>
@@ -126,30 +145,42 @@ export default {
   data() {
     return {
       user:{},
-      msg: '',
       players: [],
       day: 1,
       period: 'Day',
       currentPhase: '',
       description: '',
       secDescription: '',
-      
+
       //Modal
       show: false,
       bodyBgVariant: 'dark',
       bodyTextVariant: 'white',
 
+      //Modal
       boxTwo: '',
+      
+      //Chat
+      groupChat: 'all',
+      msg: '',
+      msgWerewolf: '',
 
       //Timer
       minutes: 0,
       seconds: 0,
       time: 0,
-      timer: null,
+
+      //Audio
+      dayTime: new Audio('http://soundbible.com/mp3/Sunny Day-SoundBible.com-2064222612.mp3'),
+      nightTime: new Audio('http://soundbible.com/mp3/Crickets At Night-SoundBible.com-174444778.mp3'),
+      timeCount: new Audio('http://soundbible.com/mp3/Tick-DeepFrozenApps-397275646.mp3'),
+      killedSound: new Audio('http://soundbible.com/mp3/neck_snap-Vladimir-719669812.mp3'),
     }
   },
   async created() {
-    // this.startTimer('meeting');
+    if(this.$route.params.socket == null) {
+      this.$router.push({ name: 'Login' })
+    }
     await this.socket.emit("startGame", this.roomId);
     await this.socket.on('gamePrepared', (room) => {
       this.room = room;
@@ -166,12 +197,25 @@ export default {
           this.user = player;
         }
       })
-      console.log("Updated user: " + this.user)
     });
-    
-    await this.socket.emit("startTimer", this.roomId);
+    await this.socket.emit("beginGame", this.roomId);
+    await this.socket.on('count', (stat) => {
+      this.description = stat.description;
+      this.secDescription = stat.secDescription;
+      if(this.description !== 'Start'){
+        this.timeCount.volume = 0.5;
+        this.timeCount.play();
+      }
+      
+    })
+    // await this.socket.emit("startTimer", this.roomId);
     await this.socket.on('timer', (time) => {
       this.time = time;
+      if(time <= 10) {
+
+        this.timeCount.volume = 0.5;
+        this.timeCount.play();
+      }
     })
     await this.socket.on('currentPhase', (stat) => {
       this.day = stat.day;
@@ -179,6 +223,47 @@ export default {
       this.description = stat.description;
       this.secDescription = stat.secDescription;
       this.period = stat.period;
+      this.dayTime.loop = true;
+      this.dayTime.volume = 0.2;
+      this.nightTime.loop = true;
+      this.nightTime.volume = 0.2;
+      let bg = '';
+      if(this.day === '1' && this.period === 'Day'){
+        this.dayTime.currentTime = 0;
+        this.dayTime.pause();
+        this.dayTime.play();
+        bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/game-play2.jpg')"
+      }
+      else if(this.day === '1' && this.period === 'Night'){
+        this.dayTime.currentTime = 0;
+        this.dayTime.pause();
+        this.nightTime.currentTime = 0;
+        this.nightTime.pause();
+        this.nightTime.play();
+        bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/game-play1.png')"
+      }
+      else if(this.day !== '1' && this.period === 'Night') {
+        this.dayTime.currentTime = 0;
+        this.dayTime.pause();
+        this.nightTime.currentTime = 0;
+        this.nightTime.pause();
+        this.nightTime.play();
+        bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/game-play1.png')"
+      }
+      else if (this.day !== '1' && this.period === 'Day') {
+        this.nightTime.currentTime = 0;
+        this.nightTime.pause();
+        this.dayTime.currentTime = 0;
+        this.dayTime.pause();
+        this.dayTime.play();
+        bg = "linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../images/game-play2.jpg')"
+      }
+
+      const section = document.getElementById('game-play') 
+        section.style.background = bg
+        section.style.backgroundColor = "black"
+        section.style.backgroundSize = "cover"
+        section.style.height = "100%"
     })
 
     await this.socket.on('message', (message) => {
@@ -195,13 +280,35 @@ export default {
       chatMessages.scrollTop = chatMessages.scrollHeight;
       this.msg = '';
     })
+    
+    await this.socket.on('werewolfMessage', (message) => {
+      const chatMessages = document.querySelector(".werewolf-messages");
+      const div = document.createElement("div");
+      div.classList.add("message");
+      if (message.username == this.user.username) {
+        div.innerHTML = `<p class="meta text-danger">${message.username}: <span>${message.text}</span></p>`;
+      }
+      else {
+        div.innerHTML = `<p class="meta">${message.username}: <span>${message.text}</span></p>`;
+      }
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      this.msgWerewolf = '';
+    })
 
     await this.socket.on('roomUsers', (roomUsers) => {
       this.players = roomUsers;
     });
-
+    await this.socket.on('playerKilled', () => {
+      this.killedSound.play();
+    });
     await this.socket.on('gameOver', (room) => {
-      this.$router.push({ name: 'Lobby', params: { roomId: room.code, socket: this.$route.params.socket } });
+      console.log('gameOver')
+      this.dayTime.pause();
+      this.nightTime.pause();
+      this.timeCount.pause();
+      this.killedSound.pause();
+      this.$router.push({ name: 'Game-result', params: { roomId: room.code, socket: this.$route.params.socket, room: room } });
     })
   },
   computed: {
@@ -209,10 +316,10 @@ export default {
 			 let time = this.time / 60
 			 let minutes = parseInt(time)
 			 let secondes = Math.round((time - minutes) * 60)
-       if( minutes < 10 ) minutes = "0"+ minutes
-       if( secondes < 10 ) secondes = "0"+ secondes
+       if( minutes < 10 ) minutes = "0"+ minutes;
+       if( secondes < 10 ) secondes = "0"+ secondes;
 			 return minutes+" : "+secondes
-		}
+		},
   },
   mounted() {
 
@@ -223,6 +330,14 @@ export default {
       if(this.msg === '') return;
       this.socket.emit('chatMessage', {
         msg: this.msg, 
+        roomId: this.roomId
+      });
+    },
+    sendMessageWerewolf(e) {
+      e.preventDefault();
+      if(this.msgWerewolf === '') return;
+      this.socket.emit('chatMessageWerewolf', {
+        msg: this.msgWerewolf, 
         roomId: this.roomId
       });
     },
@@ -295,6 +410,11 @@ export default {
           .then(value => {
             if(value) {
               if(this.currentPhase === 'voting'){
+                player.saved = true
+                this.socket.emit('chatMessage', {
+                  msg: 'Voted for ' + player.username, 
+                  roomId: this.roomId
+                });
                 this.votePlayer(player.id)
               }
               else if(this.currentPhase === 'seer'){
@@ -304,6 +424,15 @@ export default {
                 this.savePlayer(player.id)
               }
               else if(this.currentPhase === 'wolf'){
+                this.players.forEach(p => {
+                  if(p.id === player.id){
+                    p.killed = true
+                  }
+                })
+                this.socket.emit('chatMessageWerewolf', {
+                  msg: 'Voted for ' + player.username, 
+                  roomId: this.roomId
+                });
                 this.killPlayer(player.id)
               }
             }
@@ -317,8 +446,8 @@ export default {
 </script>
 
 <style scoped>
-.game-play{
-    background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../public/images/game-play1.png');
+#game-play{
+    background: linear-gradient(rgba(0, 0, 0, 0.60), rgba(0, 0, 0, 0.60)), url('../../../public/images/game-play2.jpg');
     background-color: black;
     height: 100%;
     background-size: cover;
@@ -353,11 +482,17 @@ export default {
 .unknown-player:hover{
   border: 2px solid #FFE55C;
 }
+.player-btn:hover{
+  border: 2px solid #FFE55C;
+}
 .unknown-player-checked{
   border: 2px solid #00C844;
 }
 .unknown-player-saved{
-  border: 2px solid #577c9d;
+  border: 2px solid #0eaeee;
+}
+.unknown-player-voted-killed{
+  border: 2px solid #FF0000;
 }
 .confirm-action-modal{
   background: rgba(23, 23, 23, 0.8);

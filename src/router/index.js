@@ -4,6 +4,7 @@ import Login from "../views/auth/Login.vue";
 import Home from "../views/setup/Home.vue";
 import Lobby from "../views/setup/Lobby.vue";
 import GamePlay from "../views/game-play/GamePlay.vue";
+import GameResult from "../views/game-play/GameResult.vue";
 
 Vue.use(VueRouter);
 
@@ -29,6 +30,12 @@ const routes = [
     path: "/game-play/:roomId",
     name: "Game-play",
     component: GamePlay,
+    props: true,
+  },
+  {
+    path: "/game-result/:roomId",
+    name: "Game-result",
+    component: GameResult,
     props: true,
   },
 ];
