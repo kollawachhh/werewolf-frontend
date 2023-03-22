@@ -53,7 +53,7 @@
       <p class="fs-4 fw-bold">USERNAME</p>
       <input v-model="user.username" class="px-2 mb-4 text-white bg-secondary border-1 border-light text-center" style="height:40px" type="text" placeholder="Username">
       <br>
-      <button class="button rounded-3 mt-3" style="width: 80px; height: 40px;" type="submit">Submit</button>
+      <button class="button submit rounded-3 mt-3" style="width: 80px; height: 40px;" type="submit">Submit</button>
     </form>
   </div>
 </template>
@@ -125,6 +125,7 @@ input::-webkit-input-placeholder{
   text-decoration: none;
 }
 .submit:hover{
+  color: #fff;
   background:rgb(66, 66, 66);
 }
 </style>

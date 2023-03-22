@@ -105,7 +105,7 @@
                   <img v-if="(user.role === 'villager' && player.state === 'Alive') || 
                     (user.role === 'seer' && player.state === 'Alive' && !player.checked) ||
                     (user.role === 'guard' && player.state === 'Alive' && !player.saved) ||
-                    (user.role === 'werewolf' && player.state === 'Alive' && !player.killed && player.role !== 'werewolf')" src="../../../public/images/roles/Unknown_card.png" class="unknown-player player-btn rounded-2 h-100" alt="">
+                    (user.role === 'werewolf' && player.state === 'Alive' && !player.killed && player.role !== 'werewolf')" src="../../../public/images/roles/Unknown_card.png" v-bind:class="player.saved ? 'unknown-player-saved rounded-2 h-100' : 'unknown-player player-btn rounded-2 h-100'" alt="">
                   <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role !== 'werewolf'" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-checked player-btn rounded-2 h-100" alt="">
                   <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" class="player-btn h-100" alt="">
                   <img v-if="user.role === 'werewolf' && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" class="h-100" alt="">
@@ -410,6 +410,11 @@ export default {
           .then(value => {
             if(value) {
               if(this.currentPhase === 'voting'){
+                player.saved = true
+                this.socket.emit('chatMessage', {
+                  msg: 'Voted for ' + player.username, 
+                  roomId: this.roomId
+                });
                 this.votePlayer(player.id)
               }
               else if(this.currentPhase === 'seer'){
@@ -424,6 +429,10 @@ export default {
                     p.killed = true
                   }
                 })
+                this.socket.emit('chatMessageWerewolf', {
+                  msg: 'Voted for ' + player.username, 
+                  roomId: this.roomId
+                });
                 this.killPlayer(player.id)
               }
             }
