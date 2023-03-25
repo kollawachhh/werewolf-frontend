@@ -46,8 +46,9 @@
           <div id="audio-button" class="text-center">
             <video id="user-audio" class="user-audio"></video>
             <div class="controls">
-              <b-icon v-if="microphone" icon="mic-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
-              <b-icon v-else icon="mic-mute-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
+              <b-icon v-if="microphone && period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
+              <b-icon v-else-if="period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-mute-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
+              <b-icon v-else icon="mic-mute" variant="danger" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
             </div>
           </div>
         </div>
@@ -229,11 +230,7 @@ export default {
       this.$router.push({ name: 'Lobby', params: { roomId: room.code, socket: this.$route.params.socket } });
     })
 
-    await this.thisRoomMicrophone();
-    
-    await this.detectVoiceFromMicrophone();
-
-    await this.socket.emit('setup room microphone', this.roomId);
+    await this.setupRoomMicrophone();
 
     await this.socket.on('all other users', this.callOtherUsers);
 
@@ -248,6 +245,12 @@ export default {
     })
   },
   watch: {
+    async allowMicAccess(newState, oldState) {
+      if (newState == 'granted') {
+        await this.detectVoiceFromMicrophone();
+        await this.socket.emit('setup room microphone', this.roomId);
+      }
+    },
     microphone(newState, oldState) {
       if (newState == true) {
         this.highlightSpeaker();
@@ -257,6 +260,20 @@ export default {
       if (newState != oldState) {
         console.log(this.isSpeaking);
         this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
+      }
+    },
+    user(newState, oldState) {
+      if (newState.state === 'Eliminated' && this.userStream != null) {
+        let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
+        mic.enabled = false;
+        this.microphone = false;
+      }
+    },
+    period(newState, oldState) {
+      if (newState == 'Night' && this.userStream != null) {
+        let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
+        mic.enabled = false;
+        this.microphone = false;
       }
     },
   },
@@ -368,29 +385,41 @@ export default {
           // An error occurred
         })
     },
-    async thisRoomMicrophone() {
-      let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      this.userStream = stream;
-      this.currentUserAudio = document.getElementById('user-audio');
-      this.currentUserAudio.srcObject = stream;
+    async setupRoomMicrophone() {
+      try {
+        let stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        
+        this.userStream = stream;
+        this.currentUserAudio = document.getElementById('user-audio');
+        this.currentUserAudio.srcObject = stream;
 
-      this.currentUserContainer = document.getElementById('audio-button');
-      this.otherUserAudio = document.getElementById('other-user-audio');
-      
-      let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
-      mic.enabled = false;
+        this.currentUserContainer = document.getElementById('audio-button');
+        this.otherUserAudio = document.getElementById('other-user-audio');
+        
+        let mic = this.userStream.getTracks().find(track => track.kind === 'audio');
+        mic.enabled = false;
+
+        console.log(this.userStream);
+        await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
+          console.log(permissionStatus.state);
+          this.allowMicAccess = permissionStatus.state;
+        });
+      } catch (error) {
+        await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
+          console.log(permissionStatus.state);
+          this.allowMicAccess = permissionStatus.state;
+        });
+        console.log("You have denied the microphone access for this site.");
+      }
     },
     callOtherUsers(otherUsers) {
-      let round = otherUsers.indexOf(this.user.id);
-      setTimeout(() => {
-        for (let i = 0; i < round; i++) {
-          const peer = this.createPeer(otherUsers[i]);
-          this.peers[otherUsers[i]] = peer;
-          this.userStream.getTracks().forEach(track => {
-            peer.addTrack(track, this.userStream);
-          });
-        };
-      }, ((round + 10) * 5));
+      otherUsers.forEach(userIdToCall => {
+        const peer = this.createPeer(userIdToCall);
+        this.peers[userIdToCall] = peer;
+        this.userStream.getTracks().forEach(track => {
+          peer.addTrack(track, this.userStream);
+        });
+      });
     },
     createPeer(userIdToCall) {
       const peer = new RTCPeerConnection({
@@ -494,10 +523,11 @@ export default {
       }, 500);
     },
     async toggleMic() {
-      // await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
-      //   this.allowMicAccess = permissionStatus.state;
-      // })
-      // if (this.allowMicAccess == 'granted' && this.userStream != null) {
+      let permissions = null;
+      await navigator.permissions.query({ name: 'microphone' }).then((permissionStatus) => {
+        permissions = permissionStatus.state;
+      })
+      if (permissions == 'granted' && this.userStream != null && (this.currentPhase === 'meeting' || this.currentPhase === 'voting')) {
         let audioTrack = this.userStream.getTracks().find(track => track.kind === 'audio');
         if (audioTrack.enabled) {
           audioTrack.enabled = false;
@@ -506,12 +536,13 @@ export default {
           audioTrack.enabled = true;
           this.microphone = true;
         }
-      // } else if ((this.allowMicAccess == 'granted' && this.userStream == null) || this.allowMicAccess == 'prompt') {
-      //   this.thisRoomMicrophone();
-      // } else {
-      //   alert("you have blocked the microphone access for this site.");
-      //   // this.thisRoomMicrophone();
-      // }
+      } else if ((permissions == 'granted' && this.userStream == null) || permissions == 'prompt' && (this.currentPhase === 'meeting' || this.currentPhase === 'voting')) {
+        this.setupRoomMicrophone();
+      } else if (permissions == 'denied') {
+        alert("You have denied the microphone access for this site.");
+      } else {
+        alert("Shhhhhhhh \uD83E\uDD2B");
+      }
     },
   }
 }
