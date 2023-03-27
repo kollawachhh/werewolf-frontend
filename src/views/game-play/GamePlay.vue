@@ -55,7 +55,7 @@
         </div>
         <div class="col-4">
           <div id="audio-button" class="text-center">
-            <video id="user-audio" class="user-audio"></video>
+            <audio id="user-audio" class="user-audio"></audio>
             <div class="controls">
               <b-icon v-if="microphone && period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
               <b-icon v-else-if="period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-mute-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
@@ -98,10 +98,10 @@
                     <button v-if="currentPhase === 'wolf'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="killPlayer(player.id)">Yes</button>
                     <button v-if="currentPhase === 'seer'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="checkPlayer(player.id)">Yes</button>
                     <button v-if="currentPhase === 'guard'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="savePlayer(player.id)">Yes</button>
-                    <button class="mx-auto border-0 rounded-3 px-4 py-2" @click="hideModal">No</button>
+                    <button class="mx-auto border-0 rounded-3 px-4 py-2" @click="hideModal">No</button> 
                   </div>
                 </b-modal> -->
-                <b-button @click="showMsgBoxTwo(player)" v-bind:class="player.speaking ? 'speaking bg-transparent h-75' : 'bg-transparent border-0 h-75'"
+                <b-button @click="showMsgBoxTwo(player)" v-bind:class="player.speaking ? 'speaking bg-transparent h-75' : 'bg-transparent border-0 h-75'" :style="player.speaking ? 'padding: 4px 10px 4px 10px;' : 'padding: 6px 12px 6px 12px;'"
                 :disabled="player.killed || currentPhase === 'meeting' || user.state === 'Eliminated' || !user.isActive ||
                   !(user.role === 'villager' && currentPhase === 'voting') &&
                   !(user.role === 'werewolf' && currentPhase === 'voting') &&
@@ -134,7 +134,7 @@
             </div>
         </div>
     </div>
-    <div id="other-user-audio" style="width: 0; height: 0;"></div>
+    <div id="other-user-audio" style="width: 0%; height: 0%;"></div>
   </div>
 </template>
 
@@ -566,7 +566,7 @@ export default {
       peer.ontrack = (e) => {
         const container = document.createElement('div');
         container.classList.add('remote-audio-container');
-        const audio = document.createElement('video');
+        const audio = document.createElement('audio');
         audio.srcObject = e.streams[0];
         audio.autoplay = true;
         audio.playsInline = true;
@@ -734,6 +734,6 @@ export default {
   border-bottom: 2px solid white;
 }
 .speaking{
-  border: 3px solid #FFFFFF;
+  border: 2px solid #FFFFFF;
 }
 </style>
