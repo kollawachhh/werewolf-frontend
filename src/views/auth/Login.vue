@@ -77,7 +77,7 @@ export default {
     }
   },
   created() {
-    this.socket = io('https://blueberry-pudding-78581.herokuapp.com/');
+    this.socket = io('http://localhost:3000');
   },
   mounted() {
 
