@@ -20,11 +20,28 @@
                     <span v-else class="h3">{{ player.username }}</span>
                     <span v-if="player.username == user.username" style="color: #00ff00" class="ms-auto me-4 h3">{{ player.state }}</span>
                     <span v-else class="ms-auto me-4 h3">{{ player.state }}</span>
+                    <!-- <button v-on:click="kickPlayer(player)" class="bg-transparent border-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                      </svg>
+                    </button> -->
+                    <button v-if="player.state == 'Host' && user.state == 'Host'" disabled class="bg-transparent border-0 ms-1 me-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-h-circle-fill" style="color:burlywood;" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-5-3.998H9.67v3.322H6.33V4.002H5V12h1.33V8.455h3.34V12H11V4.002Z"/>
+                      </svg>
+                    </button>
+                    <b-button v-if="player.state != 'Host' && user.state == 'Host'" @click="kickPlayer(player)" class="bg-transparent border-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                      </svg>
+                    </b-button>
                 </div>
             </div>
         </div>
         <div class="d-flex pb-2">
-            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length < 3">Start</button>
+            <button v-if="user.state === 'Host'" v-on:click="start" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;" :disabled="players.filter((player) => player.state === 'Ready').length < room.setting.maxPlayer-1">Start</button>
             <button v-else-if="user.state === 'Waiting'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;">Ready</button>
             <button v-else-if="user.state === 'Ready'" v-on:click="playerStatus" class="ms-auto me-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;">Wait</button>
             <button class="me-auto ms-5 fw-bold rounded-2 border-0" style="width: 10%; background: #AEAEAE;" v-on:click="back" >Back</button>
@@ -98,6 +115,11 @@ export default {
       clearInterval(this.bgTime);
       this.$router.push({ name: 'Game-play', params: { roomId: this.room.code, socket: this.socket, room: room } });
     });
+    await this.socket.on('kicked', () => {
+      let current_player = this.players.find((player) => player.id == this.user.id);
+      console.log(current_player);
+      if(current_player == undefined) {this.$router.push({ name: 'Home', params: { socket: this.socket } })};
+    })
   },
   mounted() {
     
@@ -126,6 +148,27 @@ export default {
       });
       clearInterval(this.bgTime);
       this.$router.push({ name: 'Home', params: { socket: this.$props.socket } });
+    },
+    kickPlayer(player) {
+      this.$bvModal.msgBoxConfirm(`${'Do you want to kick for ' + player.username + ' ?'}`, {
+        size: 'md',
+        centered: true,
+        'hide-header': true,
+        "hide-footer": true,
+        'body-bg-variant': 'dark',
+        'body-text-variant': 'white',
+      })
+        .then(value => {
+          if(value) {
+            this.socket.emit('kickPlayer', {
+              roomId: this.room.code,
+              playerId: player.id
+            });
+          }
+        })
+        .catch(err => {
+          // An error occurred
+        })
     },
     changeBgLobby() {
         let bg = ""
@@ -184,5 +227,11 @@ export default {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #888; 
+}
+.bi-x-circle{
+  color: #ffffff;
+}
+.bi-x-circle:hover{
+  color: #ff4848;
 }
 </style>

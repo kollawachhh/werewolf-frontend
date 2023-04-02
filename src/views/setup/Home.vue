@@ -48,11 +48,10 @@
                         <div class="text-center">
                           <button class="button bg-secondary border-0 py-2 rounded-2 text-white mb-4 h6" style="width:70px;" @click="saveSettingModal">Save</button>
                         </div>
-                        
                       </div>
                     </b-modal>
                   </p>
-                  <input v-model="setting.maxPlayer" class="w-100 px-2" style="height:40px" type="number" max="10" min="4" placeholder="Max player">
+                  <input v-model="setting.maxPlayer" class="w-100 px-2" style="height:40px" type="number" max="10" min="4" placeholder="4 - 10 players">
               </div>
               <button class="button bg-secondary border-0 py-1 rounded-2 text-white" style="width:70px;" type="submit">Create</button>
             </form>
@@ -144,7 +143,7 @@ export default {
 
       //room setting
       setting: {
-        maxPlayer: 4,
+        maxPlayer: null,
         meetingTime: 10,
         voteTime: 10,
         seerTime: 10,
@@ -184,6 +183,10 @@ export default {
     },
     async create(e){
       e.preventDefault()
+      if(this.setting.maxPlayer == null || this.setting.maxPlayer < 4 || this.setting.maxPlayer > 10){
+        alert("Please enter the number of players between 4 and 10")
+        return;
+      }
       await this.socket.emit('createRoom', this.setting)
       this.socket.on('roomCreated', (room) => {
         this.user.room = room;
@@ -196,7 +199,7 @@ export default {
       await this.socket.emit('joinRoom', this.roomCode)
       this.socket.on('roomJoined', (room) => {
         console.log("Room joined: ", room);
-        if (room != false && room != 'full') {
+        if (room != false && room != 'full' && room != "In-game") {
           this.user.room = room;
           clearInterval(this.bgTime)
           this.$router.push({ name: 'Lobby', params: { roomId: this.user.room, socket: this.$route.params.socket } })
@@ -204,6 +207,8 @@ export default {
         else {
           if (room == 'full') {
             alert("Sorry, this room is full.");
+          } else if (room == "In-game") {
+            alert("Sorry, this room is in game.");
           } else {
             alert("There is no room you are looking for, please check your room code again.");
           }

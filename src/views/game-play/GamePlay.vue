@@ -2,7 +2,6 @@
   <div id="game-play" class="container-fluid p-0">
     <div class="row w-100 d-flex m-0">
         <div class="col-6 d-flex ps-5 pt-5">
-            <!-- <div v-bind:class="isSpeaking ? 'speaking rounded-2 col-3' : 'col-3'"> -->
               <div class="col-3">
                 <img v-if="user.role === 'seer' && user.state === 'Alive'" v-bind:class="isSpeaking ? 'speaking rounded-2' : 'unknown-player-checked rounded-2'" style="height:258px;" src="../../../public/images/roles/Seer_card.png" alt="seer">
                 <img v-if="user.role === 'seer' && user.state === 'Eliminated'" style="height:258px;" src="../../../public/images/roles/seer_killed.png" alt="seerKilled">
@@ -27,7 +26,7 @@
     <div class="d-flex ps-5 pt-5" style="height: 35%;">
         <div class="col-4 h-100">
             <div class="row chat-wrapper h-100 rounded-4 px-3 py-3">
-              <div class="col-12">
+              <div class="col-12 h-100">
                 <div class="row d-flex" style="height:17%;">
                   <button disabled :hidden="user.role === 'werewolf'" class=" h-100 mt-2 rounded-3 text-white bg-secondary" style="width: 10%;" @click="groupChat = 'all'">All</button>
                   <button :hidden="user.role !== 'werewolf'" class="h-100 mt-2 rounded-3 text-white bg-secondary" style="width: 15%;" v-bind:class="groupChat === 'all' ? 'bg-success': 'bg-secondary'" @click="groupChat = 'all'">All</button>
@@ -50,13 +49,15 @@
                 
         </div>
         <div class="col-4 d-block justify-content-center align-items-center text-white text-center pt-5">
-            <p class="display-1">{{ description }}</p>
+            <p v-if="description == 'Villager Win'" class="text-chartreuse display-1">{{ description }}</p>
+            <p v-if="description == 'Werewolf Win'" class="text-danger display-1">{{ description }}</p>
+            <p v-if="description != 'Villager Win' && description != 'Werewolf Win'" class="display-1">{{ description }}</p>
             <p class="fs-3"> {{ secDescription }}</p>
         </div>
-        <div class="col-4">
+        <div class="col-4 d-block justify-content-center align-items-center pt-5">
           <div id="audio-button" class="text-center">
             <audio id="user-audio" class="user-audio"></audio>
-            <div class="controls">
+            <div class="control pt-4">
               <b-icon v-if="microphone && period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
               <b-icon v-else-if="period == 'Day' && user.state !== 'Eliminated' && userStream != null" icon="mic-mute-fill" variant="light" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
               <b-icon v-else icon="mic-mute" variant="danger" font-scale="3" style="cursor: pointer" v-on:click="toggleMic"></b-icon>
@@ -69,38 +70,6 @@
             <div v-for="player in players" :key="player.username" class="h-100">
               <div v-if="player.username !== user.username" class="text-white mx-5 h-100">
                 <p>{{ player.username }} <span v-bind:class="player.state === 'Eliminated' ? 'text-danger': 'text-success'">({{ player.state }})</span></p>
-                <!-- <b-button v-b-modal.modal-center class="bg-transparent border-0" 
-                  :disabled="player.killed || currentPhase === 'meeting' || 
-                  !(user.role === 'werewolf' && currentPhase === 'wolf') &&
-                  !(user.role === 'seer' && currentPhase === 'seer') &&
-                  !(user.role === 'guard' && currentPhase === 'guard')">
-                  <img v-if="player.state === 'Alive' && !player.checked" src="../../../public/images/roles/Unknown_card.png" class="unknown-player rounded-2" style="width:100px;" alt="">
-                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role !== 'werewolf'" src="../../../public/images/roles/Unknown_card.png" class="unknown-player-checked rounded-2" style="width:100px;" alt="">
-                  <img v-if="user.role === 'seer' && player.checked && player.state === 'Alive' && player.role === 'werewolf'" src="../../../public/images/roles/wolf.png" style="width:100px;" alt="">
-                </b-button>
-                <b-modal ref="confirm-action" id="modal-center" size="md" class="confirm-action-modal" 
-                  hide-header 
-                  hide-footer
-                  centered
-                  v-model="show"
-                  :body-bg-variant="bodyBgVariant"
-                  :body-text-variant="bodyTextVariant">
-                  <div class="px-5">
-                    <div class="d-flex m-title-wrapper">
-                      <p v-if="currentPhase === 'voting'" class="my-4 mx-auto fs-4 fw-bold">Are you sure to vote <span style="color: #FFE55C;">{{player.username}}</span> ?</p>
-                      <p v-if="currentPhase === 'wolf'" class="my-4 mx-auto fs-4 fw-bold">Are you sure to eliminate <span style="color: #FFE55C;">{{player.username}}</span> ?</p>
-                      <p v-if="currentPhase === 'seer'" class="my-4 mx-auto fs-4 fw-bold">Are you sure to check <span style="color: #FFE55C;">{{player.username}}</span> ?</p>
-                      <p v-if="currentPhase === 'guard'" class="my-4 mx-auto fs-4 fw-bold">Are you sure to protect <span style="color: #FFE55C;">{{player.username}}</span> ?</p>
-                    </div>
-                  </div>
-                  <div class="d-flex px-5 my-4">
-                    <button v-if="currentPhase === 'voting'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="votePlayer(player.id)">Yes</button>
-                    <button v-if="currentPhase === 'wolf'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="killPlayer(player.id)">Yes</button>
-                    <button v-if="currentPhase === 'seer'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="checkPlayer(player.id)">Yes</button>
-                    <button v-if="currentPhase === 'guard'" class="mx-auto border-0 rounded-3 px-4 py-2" @click="savePlayer(player.id)">Yes</button>
-                    <button class="mx-auto border-0 rounded-3 px-4 py-2" @click="hideModal">No</button> 
-                  </div>
-                </b-modal> -->
                 <b-button @click="showMsgBoxTwo(player)" v-bind:class="player.speaking ? 'speaking bg-transparent h-75' : 'bg-transparent border-0 h-75'" :style="player.speaking ? 'padding: 4px 10px 4px 10px;' : 'padding: 6px 12px 6px 12px;'"
                 :disabled="player.killed || currentPhase === 'meeting' || user.state === 'Eliminated' || !user.isActive ||
                   !(user.role === 'villager' && currentPhase === 'voting') &&
@@ -125,12 +94,6 @@
                   <img v-if="player.state === 'Eliminated' && player.role === 'guard'" src="../../../public/images/roles/guard_killled.png" class="h-100" alt="">
                 </b-button>
               </div>
-              <!-- <div class="text-white mx-5 h-100">
-                <p>Username1<span>(Alive)</span></p>
-                <b-button class="h-75">
-                  <img src="../../../public/images/roles/Unknown_card.png" class="unknown-player player-btn rounded-2 h-100" alt="">
-                </b-button>
-              </div> -->
             </div>
         </div>
     </div>
@@ -685,6 +648,9 @@ export default {
     height: 100%;
     background-size: cover;
     /* Opacity: 70% */
+}
+.text-chartreuse{
+    color: chartreuse;
 }
 .chat-wrapper{
     background-color: black;
