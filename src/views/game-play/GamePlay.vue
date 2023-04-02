@@ -167,9 +167,9 @@ export default {
     }
   },
   async created() {
-/*     if(this.$route.params.socket == null) {
+    if(this.$route.params.socket == null) {
       this.$router.push({ name: 'Login' })
-    } */
+    }
     await this.socket.emit("startGame", this.roomId);
     await this.socket.on('gamePrepared', (room) => {
       this.room = room;
