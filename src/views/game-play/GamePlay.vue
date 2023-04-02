@@ -366,7 +366,6 @@ export default {
     },
     isSpeaking(newState, oldState) {
       if (newState != oldState) {
-        console.log(this.isSpeaking);
         this.socket.emit("speaking highlight", { speaking: this.isSpeaking, roomId: this.roomId });
       }
     },
@@ -543,8 +542,8 @@ export default {
       }
     },
     callOtherUsers(otherUsers) {
-      otherUsers.forEach(userIdToCall => {
-        const peer = this.createPeer(userIdToCall);
+      otherUsers.forEach(async (userIdToCall) => {
+        const peer = await this.createPeer(userIdToCall);
         this.peers[userIdToCall] = peer;
         this.userStream.getTracks().forEach(track => {
           peer.addTrack(track, this.userStream);
@@ -588,7 +587,7 @@ export default {
       this.socket.emit('peer connection request', payload);
     },
     async handleReceiveOffer({ sdp, callerId }) {
-      const peer = this.createPeer(callerId);
+      const peer = await this.createPeer(callerId);
       this.peers[callerId] = peer;
       const desc = new RTCSessionDescription(sdp);
       await peer.setRemoteDescription(desc);
@@ -607,9 +606,9 @@ export default {
 
       this.socket.emit('connection answer', payload);
     },
-    handleAnswer({ sdp, answererId }) {
+    async handleAnswer({ sdp, answererId }) {
       const desc = new RTCSessionDescription(sdp);
-      this.peers[answererId].setRemoteDescription(desc).catch(e => console.log(e));
+      await this.peers[answererId].setRemoteDescription(desc).catch(e => console.log(e));
     },
     handleICECandidateEvent(e) {
       if (e.candidate) {
@@ -622,9 +621,9 @@ export default {
         });
       }
     },
-    handleReceiveIce({ candidate, from }) {
+    async handleReceiveIce({ candidate, from }) {
       const inComingCandidate = new RTCIceCandidate(candidate);
-      this.peers[from].addIceCandidate(inComingCandidate);
+      await this.peers[from].addIceCandidate(inComingCandidate);
     },
     detectVoiceFromMicrophone() {
       this.audioContext = new AudioContext();
